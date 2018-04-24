@@ -3,6 +3,8 @@ import sys
 import os
 import py_compile
 import vcf_expression_encoder
+import tempfile
+from filecmp import cmp
 
 class VcfExpressionEncoderTests(unittest.TestCase):
     @classmethod
@@ -93,3 +95,108 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             ]
             vcf_expression_encoder.main(command)
         self.assertTrue('is already gene expression annotated. GX format header already exists.' in str(context.exception))
+
+    def test_error_id_column_nonexistent_in_file(self):
+        with self.assertRaises(Exception) as context:
+            command = [
+                os.path.join(self.test_data_dir, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
+                'custom',
+                'gene',
+                '-i', 'nonexistent_column',
+                '-e', 'FPKM',
+            ]
+            vcf_expression_encoder.main(command)
+        self.assertTrue('ERROR: id_column header nonexistent_column does not exist in expression_file' in str(context.exception))
+
+    def test_error_expression_column_nonexistent_in_file(self):
+        with self.assertRaises(Exception) as context:
+            command = [
+                os.path.join(self.test_data_dir, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
+                'custom',
+                'gene',
+                '-i', 'tracking_id',
+                '-e', 'nonexistent_column',
+            ]
+            vcf_expression_encoder.main(command)
+        self.assertTrue('ERROR: expression_column header nonexistent_column does not exist in expression_file' in str(context.exception))
+
+    def test_mutation_without_gene_in_csq(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'no_gene.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
+            'cufflinks',
+            'gene',
+        ]
+        vcf_expression_encoder.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'no_gene.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
+        temp_path.cleanup()
+
+    def test_mutation_without_matching_expression_value(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'no_matching_expression.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
+            'cufflinks',
+            'gene',
+        ]
+        vcf_expression_encoder.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'no_matching_expression.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
+        temp_path.cleanup()
+
+    def test_multi_sample_vcf(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'multiple_samples.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
+            'cufflinks',
+            'gene',
+            '-s', 'H_NJ-HCC1395-HCC1395',
+        ]
+        vcf_expression_encoder.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multiple_samples.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
+        temp_path.cleanup()
+
+    def test_multiple_transcripts(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'multiple_transcripts.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
+            'cufflinks',
+            'gene',
+        ]
+        vcf_expression_encoder.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multiple_transcripts.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
+        temp_path.cleanup()
+
+    def test_cufflinks_format_gene_mode(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
+            'cufflinks',
+            'gene',
+        ]
+        vcf_expression_encoder.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.cufflinks.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
+        temp_path.cleanup()
+
+    def test_cufflinks_format_transcript_mode(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'isoforms.fpkm_tracking'),
+            'cufflinks',
+            'transcript',
+        ]
+        vcf_expression_encoder.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.cufflinks.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
+        temp_path.cleanup()

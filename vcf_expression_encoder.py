@@ -1,7 +1,47 @@
 import argparse
 import sys
 import vcfpy
+import pandas as pd
 import re
+from collections import OrderedDict
+
+def resolve_id_column(args):
+    if args.format == 'cufflinks':
+        return 'tracking_id'
+    elif args.format == 'custom':
+        if args.id_column is None:
+            raise Exception("ERROR: `--id-column` option is required when using the `custom` format")
+        else:
+            return args.id_column
+
+def resolve_expression_column(args):
+    if args.format == 'cufflinks':
+        return 'FPKM'
+    elif args.format == 'custom':
+        if args.expression_column is None:
+            raise Exception("ERROR: `--id-column` option is required when using the `custom` format")
+        else:
+            return args.expression_column
+
+def to_array(dictionary):
+    array = []
+    for key, value in dictionary.items():
+        array.append("{}|{}".format(key, value))
+    return sorted(array)
+
+def parse_expression_file(args, vcf_reader, vcf_writer):
+    id_column = resolve_id_column(args)
+    df = pd.read_csv(args.expression_file, sep='\t')
+    expression_column = resolve_expression_column(args)
+    if expression_column not in df.columns.values:
+        vcf_reader.close()
+        vcf_writer.close()
+        raise Exception("ERROR: expression_column header {} does not exist in expression_file {}".format(expression_column, args.expression_file))
+    if id_column not in df.columns.values:
+        vcf_reader.close()
+        vcf_writer.close()
+        raise Exception("ERROR: id_column header {} does not exist in expression_file {}".format(id_column, args.expression_file))
+    return df, id_column, expression_column
 
 def create_vcf_reader(args):
     vcf_reader = vcfpy.Reader.from_path(args.input_vcf)
@@ -22,6 +62,32 @@ def create_vcf_reader(args):
         vcf_reader.close()
         raise Exception("ERROR: VCF {} is already transcript expression annotated. TX format header already exists.".format(args.input_vcf))
     return vcf_reader, is_multi_sample
+
+def create_vcf_writer(args, vcf_reader):
+    (head, sep, tail) = args.input_vcf.rpartition('.vcf')
+    new_header = vcf_reader.header.copy()
+    if args.mode == 'gene':
+        new_header.add_format_line(OrderedDict([('ID', 'GX'), ('Number', '.'), ('Type', 'String'), ('Description', 'Gene Expressions')]))
+        output_file = ('').join([head, '.gx.vcf', tail])
+    elif args.mode == 'transcript':
+        new_header.add_format_line(OrderedDict([('ID', 'TX'), ('Number', '.'), ('Type', 'String'), ('Description', 'Transcript Expressions')]))
+        output_file = ('').join([head, '.tx.vcf', tail])
+    return vcfpy.Writer.from_path(output_file, new_header)
+
+def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_column, expression_column):
+    expressions = {}
+    for item in items:
+        subset = df.loc[df[id_column] == item]
+        if len(subset) > 0:
+            expressions[item] = subset[expression_column].sum()
+        else:
+            expressions[item] = 0.0
+    if is_multi_sample:
+        entry.FORMAT += [tag]
+        entry.call_for_sample[sample_name].data[tag] = to_array(expressions)
+    else:
+        entry.add_format(tag, to_array(expressions))
+    return entry
 
 def define_parser():
     parser = argparse.ArgumentParser("vcf-expression-encoder")
@@ -65,9 +131,44 @@ def main(args_input = sys.argv[1:]):
     parser = define_parser()
     args = parser.parse_args(args_input)
 
+    if args.format == 'custom':
+        if args.id_column is None:
+            raise Exception("--id-column is not set. This is required when using the `custom` format.")
+        if args.expression_column is None:
+            raise Exception("--expression-column is not set. This is required when using the `custom` format.")
+
     (vcf_reader, is_multi_sample) = create_vcf_reader(args)
     format_pattern = re.compile('Format: (.*)')
     csq_format = format_pattern.search(vcf_reader.header.get_info_field_info('CSQ').description).group(1).split('|')
+
+    vcf_writer = create_vcf_writer(args, vcf_reader)
+
+    (df, id_column, expression_column) = parse_expression_file(args, vcf_reader, vcf_writer)
+
+    for entry in vcf_reader:
+        transcript_ids = set()
+        genes = set()
+        for transcript in entry.INFO['CSQ']:
+            for key, value in zip(csq_format, transcript.split('|')):
+                if key == 'Feature' and value != '':
+                    transcript_ids.add(value)
+                elif key == 'SYMBOL' and args.format == 'kalisto' and value != '':
+                    genes.add(value)
+                elif key == 'Gene' and value != '':
+                    genes.add(value)
+
+        if args.mode == 'gene':
+            genes = list(genes)
+            if len(genes) > 0:
+                add_expressions(entry, is_multi_sample, args.sample_name, df, genes, 'GX', id_column, expression_column)
+        elif args.mode == 'transcript':
+            transcript_ids = list(transcript_ids)
+            if len(transcript_ids) > 0:
+                add_expressions(entry, is_multi_sample, args.sample_name, df, transcript_ids, 'TX', id_column, expression_column)
+        vcf_writer.write_record(entry)
+
+    vcf_reader.close()
+    vcf_writer.close()
 
 if __name__ == '__main__':
     main()
