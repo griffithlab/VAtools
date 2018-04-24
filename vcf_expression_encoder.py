@@ -1,5 +1,27 @@
 import argparse
 import sys
+import vcfpy
+import re
+
+def create_vcf_reader(args):
+    vcf_reader = vcfpy.Reader.from_path(args.input_vcf)
+    is_multi_sample = len(vcf_reader.header.samples.names) > 1
+    if is_multi_sample and args.sample_name is None:
+        vcf_reader.close()
+        raise Exception("ERROR: VCF {} contains more than one sample. Please use the -s option to specify which sample to annotate.".format(args.input_vcf))
+    elif is_multi_sample and args.sample_name not in vcf_reader.header.samples.names:
+        vcf_reader.close()
+        raise Exception("ERROR: VCF {} does not contain a sample column for sample {}.".format(args.input_vcf, args.sample_name))
+    if 'CSQ' not in vcf_reader.header.info_ids():
+        vcf_reader.close()
+        raise Exception("ERROR: VCF {} is not VEP-annotated. Please annotate the VCF with VEP before running this tool.".format(args.input_vcf))
+    if args.mode == 'gene' and 'GX' in vcf_reader.header.format_ids():
+        vcf_reader.close()
+        raise Exception("ERROR: VCF {} is already gene expression annotated. GX format header already exists.".format(args.input_vcf))
+    elif args.mode == 'transcript' and 'TX' in vcf_reader.header.format_ids():
+        vcf_reader.close()
+        raise Exception("ERROR: VCF {} is already transcript expression annotated. TX format header already exists.".format(args.input_vcf))
+    return vcf_reader, is_multi_sample
 
 def define_parser():
     parser = argparse.ArgumentParser("vcf-expression-encoder")
@@ -42,6 +64,10 @@ def define_parser():
 def main(args_input = sys.argv[1:]):
     parser = define_parser()
     args = parser.parse_args(args_input)
+
+    (vcf_reader, is_multi_sample) = create_vcf_reader(args)
+    format_pattern = re.compile('Format: (.*)')
+    csq_format = format_pattern.search(vcf_reader.header.get_info_field_info('CSQ').description).group(1).split('|')
 
 if __name__ == '__main__':
     main()
