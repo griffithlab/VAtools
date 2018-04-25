@@ -8,6 +8,11 @@ from collections import OrderedDict
 def resolve_id_column(args):
     if args.format == 'cufflinks':
         return 'tracking_id'
+    elif args.format == 'kallisto':
+        if args.mode == 'gene':
+            return 'gene_name'
+        elif args.mode == 'transcript':
+            return 'target_id'
     elif args.format == 'custom':
         if args.id_column is None:
             raise Exception("ERROR: `--id-column` option is required when using the `custom` format")
@@ -17,6 +22,11 @@ def resolve_id_column(args):
 def resolve_expression_column(args):
     if args.format == 'cufflinks':
         return 'FPKM'
+    elif args.format == 'kallisto':
+        if args.mode == 'gene':
+            return 'abundance'
+        elif args.mode == 'transcript':
+            return 'tpm'
     elif args.format == 'custom':
         if args.expression_column is None:
             raise Exception("ERROR: `--id-column` option is required when using the `custom` format")
@@ -152,10 +162,12 @@ def main(args_input = sys.argv[1:]):
             for key, value in zip(csq_format, transcript.split('|')):
                 if key == 'Feature' and value != '':
                     transcript_ids.add(value)
-                elif key == 'SYMBOL' and args.format == 'kalisto' and value != '':
-                    genes.add(value)
-                elif key == 'Gene' and value != '':
-                    genes.add(value)
+                if args.format == 'kallisto':
+                    if key == 'SYMBOL' and value != '':
+                        genes.add(value)
+                else:
+                    if key == 'Gene' and value != '':
+                        genes.add(value)
 
         if args.mode == 'gene':
             genes = list(genes)

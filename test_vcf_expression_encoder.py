@@ -200,3 +200,29 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         vcf_expression_encoder.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.cufflinks.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
         temp_path.cleanup()
+
+    def test_kallisto_format_gene_mode(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'kallisto.genes'),
+            'kallisto',
+            'gene',
+        ]
+        vcf_expression_encoder.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.kallisto.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
+        temp_path.cleanup()
+
+    def test_kallisto_format_transcript_mode(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'kallisto.transcripts'),
+            'kallisto',
+            'transcript',
+        ]
+        vcf_expression_encoder.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.kallisto.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
+        temp_path.cleanup()
