@@ -4,6 +4,7 @@ import vcfpy
 import pandas as pd
 import re
 from collections import OrderedDict
+from gtfparse import read_gtf
 
 def resolve_id_column(args):
     if args.format == 'cufflinks':
@@ -13,11 +14,20 @@ def resolve_id_column(args):
             return 'gene_name'
         elif args.mode == 'transcript':
             return 'target_id'
+    elif args.format == 'stringtie':
+        if args.mode == 'gene':
+            return 'Gene ID'
     elif args.format == 'custom':
         if args.id_column is None:
             raise Exception("ERROR: `--id-column` option is required when using the `custom` format")
         else:
             return args.id_column
+
+def resolve_stringtie_id_column(args, headers):
+    if 'reference_id' in headers:
+        return 'reference_id'
+    else:
+        return 'transcript_id'
 
 def resolve_expression_column(args):
     if args.format == 'cufflinks':
@@ -27,6 +37,8 @@ def resolve_expression_column(args):
             return 'abundance'
         elif args.mode == 'transcript':
             return 'tpm'
+    elif args.format == 'stringtie':
+        return 'TPM'
     elif args.format == 'custom':
         if args.expression_column is None:
             raise Exception("ERROR: `--id-column` option is required when using the `custom` format")
@@ -40,8 +52,13 @@ def to_array(dictionary):
     return sorted(array)
 
 def parse_expression_file(args, vcf_reader, vcf_writer):
-    id_column = resolve_id_column(args)
-    df = pd.read_csv(args.expression_file, sep='\t')
+    if args.format == 'stringtie' and args.mode == 'transcript':
+        df_all = read_gtf(args.expression_file)
+        df = df_all[df_all["feature"] == "transcript"]
+        id_column = resolve_stringtie_id_column(args, df.columns.values)
+    else:
+        id_column = resolve_id_column(args)
+        df = pd.read_csv(args.expression_file, sep='\t')
     expression_column = resolve_expression_column(args)
     if expression_column not in df.columns.values:
         vcf_reader.close()

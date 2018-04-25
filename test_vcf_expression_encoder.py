@@ -226,3 +226,29 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         vcf_expression_encoder.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.kallisto.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
         temp_path.cleanup()
+
+    def test_stringtie_format_gene_mode(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'genes.tsv'),
+            'stringtie',
+            'gene',
+        ]
+        vcf_expression_encoder.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.stringtie.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
+        temp_path.cleanup()
+
+    def test_stringtie_format_transcript_mode(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'transcripts.gtf'),
+            'stringtie',
+            'transcript',
+        ]
+        vcf_expression_encoder.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.stringtie.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
+        temp_path.cleanup()
