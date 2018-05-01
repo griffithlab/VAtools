@@ -1,11 +1,11 @@
 from setuptools import setup
 
 setup(
-    name="vcf-encoder-tools",
+    name="vcf-annotation-tools",
     version="0.0.1",
     entry_points={
         "console_scripts":[
-            "vcf-expression-encoder = vcf_encoder_tools.vcf_expression_encoder:main",
+            "vcf-expression-annotator = vcf_annotation_tools.vcf_expression_annotator:main",
         ]
     },
     install_requires=[

@@ -2,7 +2,7 @@ import unittest
 import sys
 import os
 import py_compile
-from vcf_encoder_tools import vcf_expression_encoder
+from vcf_annotation_tools import vcf_expression_annotator
 import tempfile
 from filecmp import cmp
 
@@ -10,7 +10,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         base_dir          = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-        cls.executable    = os.path.join(base_dir, 'vcf_encoder_tools', 'vcf_expression_encoder.py')
+        cls.executable    = os.path.join(base_dir, 'vcf_annotation_tools', 'vcf_expression_annotator.py')
         cls.test_data_dir = os.path.join(base_dir, 'tests', 'test_data')
 
     def test_source_compiles(self):
@@ -25,7 +25,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
                 'gene',
                 '-e', 'FPKM',
             ]
-            vcf_expression_encoder.main(command)
+            vcf_expression_annotator.main(command)
         self.assertTrue('--id-column is not set. This is required when using the `custom` format.' == str(context.exception))
 
     def test_error_custom_format_expression_column_not_set(self):
@@ -37,7 +37,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
                 'gene',
                 '-i', 'tracking_id',
             ]
-            vcf_expression_encoder.main(command)
+            vcf_expression_annotator.main(command)
         self.assertTrue('--expression-column is not set. This is required when using the `custom` format.' == str(context.exception))
 
     def test_error_more_than_one_sample_without_sample_name(self):
@@ -48,7 +48,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
                 'cufflinks',
                 'gene',
             ]
-            vcf_expression_encoder.main(command)
+            vcf_expression_annotator.main(command)
         self.assertTrue('contains more than one sample. Please use the -s option to specify which sample to annotate.' in str(context.exception))
 
     def test_error_more_than_one_sample_with_wrong_sample_name(self):
@@ -60,7 +60,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
                 'gene',
                 '-s', 'nonexistent_sample',
             ]
-            vcf_expression_encoder.main(command)
+            vcf_expression_annotator.main(command)
         self.assertTrue('does not contain a sample column for sample nonexistent_sample.' in str(context.exception))
 
     def test_error_no_csq(self):
@@ -71,7 +71,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
                 'cufflinks',
                 'gene',
             ]
-            vcf_expression_encoder.main(command)
+            vcf_expression_annotator.main(command)
         self.assertTrue('is not VEP-annotated. Please annotate the VCF with VEP before running this tool.' in str(context.exception))
 
     def test_error_already_TX_annotated(self):
@@ -82,7 +82,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
                 'cufflinks',
                 'transcript',
             ]
-            vcf_expression_encoder.main(command)
+            vcf_expression_annotator.main(command)
         self.assertTrue('is already transcript expression annotated. TX format header already exists.' in str(context.exception))
 
     def test_error_already_GX_annotated(self):
@@ -93,7 +93,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
                 'cufflinks',
                 'gene',
             ]
-            vcf_expression_encoder.main(command)
+            vcf_expression_annotator.main(command)
         self.assertTrue('is already gene expression annotated. GX format header already exists.' in str(context.exception))
 
     def test_error_id_column_nonexistent_in_file(self):
@@ -106,7 +106,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
                 '-i', 'nonexistent_column',
                 '-e', 'FPKM',
             ]
-            vcf_expression_encoder.main(command)
+            vcf_expression_annotator.main(command)
         self.assertTrue('ERROR: id_column header nonexistent_column does not exist in expression_file' in str(context.exception))
 
     def test_error_expression_column_nonexistent_in_file(self):
@@ -119,7 +119,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
                 '-i', 'tracking_id',
                 '-e', 'nonexistent_column',
             ]
-            vcf_expression_encoder.main(command)
+            vcf_expression_annotator.main(command)
         self.assertTrue('ERROR: expression_column header nonexistent_column does not exist in expression_file' in str(context.exception))
 
     def test_mutation_without_gene_in_csq(self):
@@ -131,7 +131,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'cufflinks',
             'gene',
         ]
-        vcf_expression_encoder.main(command)
+        vcf_expression_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'no_gene.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
         temp_path.cleanup()
 
@@ -144,7 +144,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'cufflinks',
             'gene',
         ]
-        vcf_expression_encoder.main(command)
+        vcf_expression_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'no_matching_expression.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
         temp_path.cleanup()
 
@@ -158,7 +158,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'gene',
             '-s', 'H_NJ-HCC1395-HCC1395',
         ]
-        vcf_expression_encoder.main(command)
+        vcf_expression_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multiple_samples.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
         temp_path.cleanup()
 
@@ -171,7 +171,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'cufflinks',
             'gene',
         ]
-        vcf_expression_encoder.main(command)
+        vcf_expression_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multiple_transcripts.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
         temp_path.cleanup()
 
@@ -184,7 +184,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'cufflinks',
             'gene',
         ]
-        vcf_expression_encoder.main(command)
+        vcf_expression_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.cufflinks.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
         temp_path.cleanup()
 
@@ -197,7 +197,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'cufflinks',
             'transcript',
         ]
-        vcf_expression_encoder.main(command)
+        vcf_expression_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.cufflinks.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
         temp_path.cleanup()
 
@@ -210,7 +210,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'kallisto',
             'gene',
         ]
-        vcf_expression_encoder.main(command)
+        vcf_expression_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.kallisto.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
         temp_path.cleanup()
 
@@ -223,7 +223,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'kallisto',
             'transcript',
         ]
-        vcf_expression_encoder.main(command)
+        vcf_expression_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.kallisto.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
         temp_path.cleanup()
 
@@ -236,7 +236,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'stringtie',
             'gene',
         ]
-        vcf_expression_encoder.main(command)
+        vcf_expression_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.stringtie.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
         temp_path.cleanup()
 
@@ -249,6 +249,6 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'stringtie',
             'transcript',
         ]
-        vcf_expression_encoder.main(command)
+        vcf_expression_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.stringtie.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
         temp_path.cleanup()
