@@ -1,11 +1,11 @@
 from setuptools import setup
 
 setup(
-    name="vcf-expression-encoder",
+    name="vcf-encoder-tools",
     version="0.0.1",
     entry_points={
         "console_scripts":[
-            "vcf-expression-encoder = vcf_expression_encoder:main",
+            "vcf-expression-encoder = vcf_encoder_tools.vcf_expression_encoder:main",
         ]
     },
     install_requires=[

@@ -2,16 +2,16 @@ import unittest
 import sys
 import os
 import py_compile
-import vcf_expression_encoder
+from vcf_encoder_tools import vcf_expression_encoder
 import tempfile
 from filecmp import cmp
 
 class VcfExpressionEncoderTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        base_dir          = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-        cls.executable    = os.path.join(base_dir, 'vcf_expression_encoder.py')
-        cls.test_data_dir = os.path.join(base_dir, 'test_data')
+        base_dir          = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+        cls.executable    = os.path.join(base_dir, 'vcf_encoder_tools', 'vcf_expression_encoder.py')
+        cls.test_data_dir = os.path.join(base_dir, 'tests', 'test_data')
 
     def test_source_compiles(self):
         self.assertTrue(py_compile.compile(self.executable))
