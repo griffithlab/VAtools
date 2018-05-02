@@ -36,3 +36,27 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             ]
             vcf_readcount_annotator.main(command)
         self.assertTrue('does not contain a sample column for sample nonexistent_sample.' in str(context.exception))
+
+    def test_single_sample_vcf_without_readcounts_annotations_dna_mode(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'snvs.bam_readcount'),
+            'DNA',
+        ]
+        vcf_readcount_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'single_sample.dna.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        temp_path.cleanup()
+
+    def test_single_sample_vcf_without_readcounts_annotations_rna_mode(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'snvs.bam_readcount'),
+            'RNA',
+        ]
+        vcf_readcount_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'single_sample.rna.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        temp_path.cleanup()
