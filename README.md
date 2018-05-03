@@ -7,4 +7,4 @@ A set of tools to annotate VCFs with additional data:
 
 ## Install
 
-To install the alpha test version from TestPyPi run ``pip install -i https://testpypi.python.org/pypi vcf-annotation-tools`
+To install the alpha test version from TestPyPi run `pip install -i https://testpypi.python.org/pypi vcf-annotation-tools`
