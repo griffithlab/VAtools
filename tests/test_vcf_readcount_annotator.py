@@ -60,3 +60,53 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         vcf_readcount_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'single_sample.rna.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
         temp_path.cleanup()
+
+    def test_single_sample_vcf_with_existing_readcount_annotations(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.readcount.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'snvs.bam_readcount'),
+            'DNA',
+        ]
+        vcf_readcount_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'single_sample_with_existing_readcount_annotations.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        temp_path.cleanup()
+
+    def test_mutation_without_matching_readcount_value(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'no_matching_readcount.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'snvs.bam_readcount'),
+            'DNA',
+        ]
+        vcf_readcount_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'no_matching_readcount.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        temp_path.cleanup()
+
+    def test_multi_sample_vcf(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'multiple_samples.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'snvs.bam_readcount'),
+            'DNA',
+            '-s', 'H_NJ-HCC1395-HCC1395',
+        ]
+        vcf_readcount_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multiple_samples.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        temp_path.cleanup()
+
+    def test_multiple_alts(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'multiple_samples.readcount.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'snvs.bam_readcount'),
+            'DNA',
+            '-s', 'H_NJ-HCC1395-HCC1396',
+        ]
+        vcf_readcount_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multiple_samples_second_alt.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        temp_path.cleanup()
