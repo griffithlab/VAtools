@@ -182,7 +182,11 @@ def main(args_input = sys.argv[1:]):
             (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alt, entry.POS)
             brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
             if brct is not None:
-                vafs.append(calculate_vaf(int(brct[var_base]), depth))
+                if var_base not in brct:
+                    print("Warning: variant base {} is not present in the bam-readcount entry for variant {} {}. This might indicate that the bam-readcount file doesn't match the VCF.".format(var_base, chromosome, start))
+                    vafs.append("")
+                else:
+                    vafs.append(calculate_vaf(int(brct[var_base]), depth))
             else:
                 vafs.append(0)
         entry.call_for_sample[sample_name].data[frequency_field] = vafs
@@ -197,7 +201,11 @@ def main(args_input = sys.argv[1:]):
             (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alt, entry.POS)
             brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
             if brct is not None:
-                ads.append(brct[var_base])
+                if var_base not in brct:
+                    print("Warning: variant base {} is not present in the bam-readcount entry for variant {} {}. This might indicate that the bam-readcount file doesn't match the VCF.".format(var_base, chromosome, start))
+                    ads.append("")
+                else:
+                    ads.append(brct[var_base])
             else:
                 ads.append(0)
         entry.call_for_sample[sample_name].data[count_field] = ads
