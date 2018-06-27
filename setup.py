@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="vcf-annotation-tools",
-    version="0.0.1",
+    version="0.0.3",
     packages=["vcf_annotation_tools"],
     entry_points={
         "console_scripts":[
@@ -31,7 +31,7 @@ setup(
     author_email = "ssiebert@wustl.edu",
     description = "A tool for annotating VCF files with expression data",
     license = "MIT License",
-    keywords = "cancer sequencing variant variants gene expression transcript VCF",
+    keywords = "cancer sequencing variant variants gene expression readcounts VAF allele frequency FPKM TPM transcript VCF",
     #This needs to be the url where the code is being hosted
-    url = "https://github.com/griffithlab/vcf-expression-encoder",
+    url = "https://github.com/griffithlab/vcf-annotation-tools",
 )
