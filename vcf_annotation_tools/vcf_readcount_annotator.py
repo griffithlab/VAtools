@@ -8,7 +8,7 @@ import csv
 from collections import OrderedDict
 
 def define_parser():
-    parser = argparse.ArgumentParser('vcf-readcount-encoder')
+    parser = argparse.ArgumentParser('vcf-readcount-annotator')
     parser.add_argument(
         "input_vcf",
         help="A VCF file"

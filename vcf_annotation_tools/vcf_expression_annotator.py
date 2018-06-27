@@ -117,7 +117,7 @@ def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_colu
     return entry
 
 def define_parser():
-    parser = argparse.ArgumentParser("vcf-expression-encoder")
+    parser = argparse.ArgumentParser("vcf-expression-annotator")
 
     parser.add_argument(
         "input_vcf",
