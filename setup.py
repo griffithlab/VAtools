@@ -3,6 +3,7 @@ from setuptools import setup
 setup(
     name="vcf-annotation-tools",
     version="0.0.1",
+    packages=["vcf_annotation_tools"],
     entry_points={
         "console_scripts":[
             "vcf-expression-annotator = vcf_annotation_tools.vcf_expression_annotator:main",
