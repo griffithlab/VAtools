@@ -29,7 +29,7 @@ setup(
 
     author = "Susanna Kiwala",
     author_email = "ssiebert@wustl.edu",
-    description = "A tool for annotating VCF files with expression data",
+    description = "A tool for annotating VCF files with expression and readcount data",
     license = "MIT License",
     keywords = "cancer sequencing variant variants gene expression readcounts VAF allele frequency FPKM TPM transcript VCF",
     #This needs to be the url where the code is being hosted
