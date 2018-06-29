@@ -203,7 +203,7 @@ def main(args_input = sys.argv[1:]):
             if brct is not None:
                 if var_base not in brct:
                     print("Warning: variant base {} is not present in the bam-readcount entry for variant {} {}. This might indicate that the bam-readcount file doesn't match the VCF.".format(var_base, chromosome, start))
-                    ads.appen(0)
+                    ads.append(0)
                 else:
                     ads.append(brct[var_base])
             else:
