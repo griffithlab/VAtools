@@ -74,7 +74,7 @@ def calculate_vaf(var, depth):
     if int(depth) > 0:
         return format(var / int(depth), '.5f')
     else:
-        return ""
+        return 0
 
 def parse_to_bam_readcount(start, reference, alt, position):
     if len(alt) != len(reference):
@@ -184,7 +184,7 @@ def main(args_input = sys.argv[1:]):
             if brct is not None:
                 if var_base not in brct:
                     print("Warning: variant base {} is not present in the bam-readcount entry for variant {} {}. This might indicate that the bam-readcount file doesn't match the VCF.".format(var_base, chromosome, start))
-                    vafs.append("")
+                    vafs.append(0)
                 else:
                     vafs.append(calculate_vaf(int(brct[var_base]), depth))
             else:
@@ -203,7 +203,7 @@ def main(args_input = sys.argv[1:]):
             if brct is not None:
                 if var_base not in brct:
                     print("Warning: variant base {} is not present in the bam-readcount entry for variant {} {}. This might indicate that the bam-readcount file doesn't match the VCF.".format(var_base, chromosome, start))
-                    ads.append("")
+                    ads.appen(0)
                 else:
                     ads.append(brct[var_base])
             else:
