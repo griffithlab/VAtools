@@ -28,6 +28,11 @@ def define_parser():
         "-s", "--sample-name",
         help="If the input_vcf contains multiple samples, the name of the sample to annotate."
     )
+    parser.add_argument(
+        "-o", "--output-vcf",
+        help="Path to write the output VCF file. If not provided, the output VCF file will be "
+            +"written next to the input VCF file with a .readcount.vcf file ending."
+    )
     return parser
 
 def parse_brct_field(brcts):
@@ -111,8 +116,11 @@ def create_vcf_reader(args):
     return vcf_reader, sample_name
 
 def create_vcf_writer(args, vcf_reader):
-    (head, sep, tail) = args.input_vcf.rpartition('.vcf')
-    output_file = ('').join([head, '.readcount.vcf', tail])
+    if args.output_vcf:
+        output_file = args.output_vcf
+    else:
+        (head, sep, tail) = args.input_vcf.rpartition('.vcf')
+        output_file = ('').join([head, '.readcount.vcf', tail])
     new_header = vcfpy.Header(samples = vcf_reader.header.samples)
     if args.data_type == 'DNA':
         for line in vcf_reader.header.lines:

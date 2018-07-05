@@ -99,6 +99,8 @@ def create_vcf_writer(args, vcf_reader):
     elif args.mode == 'transcript':
         new_header.add_format_line(OrderedDict([('ID', 'TX'), ('Number', '.'), ('Type', 'String'), ('Description', 'Transcript Expressions')]))
         output_file = ('').join([head, '.tx.vcf', tail])
+    if args.output_vcf:
+        output_file = args.output_vcf
     return vcfpy.Writer.from_path(output_file, new_header)
 
 def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_column, expression_column):
@@ -150,6 +152,11 @@ def define_parser():
     parser.add_argument(
         "-s", "--sample-name",
         help="If the input_vcf contains multiple samples, the name of the sample to annotate."
+    )
+    parser.add_argument(
+        "-o", "--output-vcf",
+        help="Path to write the output VCF file. If not provided, the output VCF file will be "
+            +"written next to the input VCF file with a .tx.vcf or .gx.vcf file ending."
     )
 
     return parser
