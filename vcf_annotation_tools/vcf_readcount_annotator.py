@@ -163,7 +163,7 @@ def main(args_input = sys.argv[1:]):
         alts       = entry.ALT
 
         genotype_alts = [a for a in entry.call_for_sample[sample_name].gt_bases if a != reference]
-        if len(genotype_alts) == 1:
+        if len(list(set(genotype_alts))) == 1:
             genotype_alt = genotype_alts[0]
         else:
             vcf_writer.write_record(entry)
