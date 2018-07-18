@@ -1,10 +1,3 @@
-from __future__ import print_function
-import sys
-
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-######### eprint prints to stderr - remove above when done debugging ############
-
 import argparse
 import sys
 import vcfpy
@@ -93,9 +86,7 @@ def main(args_input = sys.argv[1:]):
 
     for entry in vcf_reader:
         if entry.CHROM + ":" + str(entry.POS) in values:
-            #print the value we're adding for debugging
-            eprint(values[entry.CHROM + ":" + str(entry.POS)])
-            entry.INFO[args.info_field] = values[entry.CHROM + ":" + str(entry.POS)]
+            entry.INFO[args.info_field] = [values[entry.CHROM + ":" + str(entry.POS)]]
         vcf_writer.write_record(entry)
 
     vcf_reader.close()
