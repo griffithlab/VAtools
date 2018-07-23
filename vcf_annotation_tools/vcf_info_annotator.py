@@ -38,7 +38,7 @@ def create_vcf_writer(args, vcf_reader):
     return vcfpy.Writer.from_path(output_file, new_header)
 
 def define_parser():
-    parser = argparse.ArgumentParser("vcf-generic-annotator")
+    parser = argparse.ArgumentParser("vcf-info-annotator")
 
     parser.add_argument(
         "input_vcf",
