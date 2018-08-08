@@ -8,6 +8,7 @@ setup(
         "console_scripts":[
             "vcf-expression-annotator = vcf_annotation_tools.vcf_expression_annotator:main",
             "vcf-readcount-annotator = vcf_annotation_tools.vcf_readcount_annotator:main",
+            "vcf-info-annotator = vcf_annotation_tools.vcf_info_annotator:main",
         ]
     },
     install_requires=[
