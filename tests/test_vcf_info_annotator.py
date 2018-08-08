@@ -29,3 +29,17 @@ class VcfInfoEncoderTests(unittest.TestCase):
             vcf_info_annotator.main(command)
         self.assertTrue('INFO already contains a QSI field. Choose a different label' in str(context.exception))
 
+    def test_simple_caseq(self):
+        temp_path = tempfile.TemporaryDirectory()
+        print(temp_path)
+        command = [
+            os.path.join(self.test_data_dir, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'info.tsv'),
+            'TEST', 
+            "test",
+            'Float',
+            os.path.join(temp_path.name, 'info_annotation.vcf')
+        ]
+        vcf_info_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'info_annotation.vcf'), os.path.join(temp_path.name, 'info_annotation.vcf')))
+        temp_path.cleanup()
