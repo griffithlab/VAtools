@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="vcf-annotation-tools",
-    version="0.0.7",
+    version="1.0.0",
     packages=["vcf_annotation_tools"],
     entry_points={
         "console_scripts":[
@@ -18,7 +18,7 @@ setup(
         'gtfparse',
     ],
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
 
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
