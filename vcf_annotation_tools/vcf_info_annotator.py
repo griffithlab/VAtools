@@ -27,6 +27,11 @@ def create_vcf_reader(args):
     return vcf_reader
 
 def create_vcf_writer(args, vcf_reader):
+    if args.output_vcf:
+        output_file = args.output_vcf
+    else:
+        (head, sep, tail) = args.input_vcf.rpartition('.vcf')
+        output_file = ('').join([head, '.info.vcf', tail])
     new_header = vcf_reader.header.copy()
     od = OrderedDict([('ID', args.info_field), ('Number', '.'), ('Type', args.value_format), ('Description', args.description)])
     if args.source:
@@ -34,7 +39,6 @@ def create_vcf_writer(args, vcf_reader):
     if args.version:
         od['Version'] = args.version
     new_header.add_info_line(od)
-    output_file = args.output_vcf
     return vcfpy.Writer.from_path(output_file, new_header)
 
 def define_parser():
@@ -62,8 +66,9 @@ def define_parser():
         help="The format of the values to be placed into the info field. ",
     )
     parser.add_argument(
-        "output_vcf",
-        help="Path to write the output VCF file"
+        "-o", "--output-vcf",
+        help="Path to write the output VCF file. If not provided, the output VCF file will be "
+            +"written next to the input VCF file with a .info.vcf file ending."
     )
     parser.add_argument(
         "-s", "--source",

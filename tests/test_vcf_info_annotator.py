@@ -24,7 +24,7 @@ class VcfInfoEncoderTests(unittest.TestCase):
                 'QSI', 
                 "test",
                 'Float',
-                'ztest.vcf'
+                '-o', 'ztest.vcf'
             ]
             vcf_info_annotator.main(command)
         self.assertTrue('INFO already contains a QSI field. Choose a different label' in str(context.exception))
@@ -38,7 +38,7 @@ class VcfInfoEncoderTests(unittest.TestCase):
             'TEST', 
             "test",
             'Float',
-            os.path.join(temp_path.name, 'info_annotation.vcf')
+            '-o', os.path.join(temp_path.name, 'info_annotation.vcf')
         ]
         vcf_info_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'info_annotation.vcf'), os.path.join(temp_path.name, 'info_annotation.vcf')))
