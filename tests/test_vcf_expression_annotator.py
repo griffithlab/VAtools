@@ -5,6 +5,7 @@ import py_compile
 from vcf_annotation_tools import vcf_expression_annotator
 import tempfile
 from filecmp import cmp
+import warnings
 
 class VcfExpressionEncoderTests(unittest.TestCase):
     @classmethod
@@ -121,6 +122,19 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             ]
             vcf_expression_annotator.main(command)
         self.assertTrue('ERROR: expression_column header nonexistent_column does not exist in expression_file' in str(context.exception))
+
+    def test_warning_no_csq_for_variants(self):
+        with warnings.catch_warnings(record=True) as w:
+            command = [
+                os.path.join(self.test_data_dir, 'input.no_csq.vcf'),
+                os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
+                'cufflinks',
+                'gene',
+            ]
+            vcf_expression_annotator.main(command)
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[-1].category, Warning))
+            self.assertTrue("Variant is missing VEP annotation. INFO column doesn't contain CSQ field for variant" in str(w[-1].message))
 
     def test_mutation_without_gene_in_csq(self):
         temp_path = tempfile.TemporaryDirectory()

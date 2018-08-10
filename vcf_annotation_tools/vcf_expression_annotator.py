@@ -5,6 +5,7 @@ import pandas as pd
 import re
 from collections import OrderedDict
 from gtfparse import read_gtf
+import warnings
 
 def resolve_id_column(args):
     if args.format == 'cufflinks':
@@ -182,6 +183,9 @@ def main(args_input = sys.argv[1:]):
     for entry in vcf_reader:
         transcript_ids = set()
         genes = set()
+        if 'CSQ' not in entry.INFO:
+            warnings.warn("Variant is missing VEP annotation. INFO column doesn't contain CSQ field for variant {}".format(entry), Warning)
+            continue
         for transcript in entry.INFO['CSQ']:
             for key, value in zip(csq_format, transcript.split('|')):
                 if key == 'Feature' and value != '':
