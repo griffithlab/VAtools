@@ -1,9 +1,18 @@
 # VCF Annotation Tools (VAT)
 
-A set of tools to annotate VCFs with additional data:
+VCF Annotation Tools is a python package that includes several tools to annotate VCF files with data from other tools.
 
-- vcf-expression-annotator: A tool to annotate VEP-annotated VCF files with expression data from cufflinks, kalisto, or stringtie
-- vcf-readcount-annotator: A tool to annotate VCF files with readcount data from bam-readcount
+**vcf-readcount-annotator**
+
+A tool that will add the data from bam-readcount files to the VCF sample column.
+
+**vcf-expression-annotator**
+
+A tool that will add the data from several expression tools’ output files to the VCF INFO column. Supported tools are StringTie, Kallisto, and Cufflinks. There also is a custom option to annotate with data from any tab-delimited file.
+
+**vcf-info-annotator**
+
+A tool that will add data from a tab-delimited file to any user-specified field in the VCF INFO column.
 
 ## Documentation
 
