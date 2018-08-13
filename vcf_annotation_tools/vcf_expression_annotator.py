@@ -185,6 +185,7 @@ def main(args_input = sys.argv[1:]):
         genes = set()
         if 'CSQ' not in entry.INFO:
             warnings.warn("Variant is missing VEP annotation. INFO column doesn't contain CSQ field for variant {}".format(entry), Warning)
+            vcf_writer.write_record(entry)
             continue
         for transcript in entry.INFO['CSQ']:
             for key, value in zip(csq_format, transcript.split('|')):
