@@ -9,6 +9,7 @@ setup(
             "vcf-expression-annotator = vatools.vcf_expression_annotator:main",
             "vcf-readcount-annotator = vatools.vcf_readcount_annotator:main",
             "vcf-info-annotator = vatools.vcf_info_annotator:main",
+            "vcf-genotype-annotator = vatools.vcf_genotype_annotator:main",
             "vep-annotation-reporter = vatools.vep_annotation_reporter:main",
         ]
     },
