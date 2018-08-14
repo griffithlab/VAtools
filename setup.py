@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="vcf-annotation-tools",
-    version="1.1.1",
+    version="1.1.2",
     packages=["vcf_annotation_tools"],
     entry_points={
         "console_scripts":[
