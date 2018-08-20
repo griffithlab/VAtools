@@ -140,6 +140,11 @@ def create_vcf_writer(args, vcf_reader):
         new_header.add_format_line(OrderedDict([('ID', 'RAF'), ('Number', 'A'), ('Type', 'Float'), ('Description', 'RNA Variant-allele frequency for the alt alleles')]))
     return vcfpy.Writer.from_path(output_file, new_header)
 
+def write_depth(entry, sample_name, field, value):
+    if field not in entry.FORMAT:
+        entry.FORMAT += [field]
+    entry.call_for_sample[sample_name].data[field] = value
+
 def main(args_input = sys.argv[1:]):
     parser = define_parser()
     args = parser.parse_args(args_input)
@@ -178,10 +183,8 @@ def main(args_input = sys.argv[1:]):
             continue
 
         #DP - read depth
-        if depth_field not in entry.FORMAT:
-            entry.FORMAT += [depth_field]
         depth = brct['depth']
-        entry.call_for_sample[sample_name].data[depth_field] = depth
+        write_depth(entry, sample_name, depth_field, depth)
 
         #AF - variant allele frequencies
         if frequency_field not in entry.FORMAT:
