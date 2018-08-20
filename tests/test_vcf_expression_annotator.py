@@ -146,21 +146,19 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'gene',
         ]
         vcf_expression_annotator.main(command)
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'no_gene.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
-        temp_path.cleanup()
 
-    def test_mutation_without_matching_expression_value(self):
-        temp_path = tempfile.TemporaryDirectory()
-        os.symlink(os.path.join(self.test_data_dir, 'no_matching_expression.vcf'), os.path.join(temp_path.name, 'input.vcf'))
-        command = [
-            os.path.join(temp_path.name, 'input.vcf'),
-            os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
-            'cufflinks',
-            'gene',
-        ]
-        vcf_expression_annotator.main(command)
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'no_matching_expression.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
-        temp_path.cleanup()
+    def test_error_mutation_without_matching_expression_value(self):
+        with self.assertRaises(Exception) as context:
+            temp_path = tempfile.TemporaryDirectory()
+            os.symlink(os.path.join(self.test_data_dir, 'no_matching_expression.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+            command = [
+                os.path.join(temp_path.name, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
+                'cufflinks',
+                'gene',
+            ]
+            vcf_expression_annotator.main(command)
+        self.assertTrue('ERROR: ENSG99999999999 not found in expression file.' in str(context.exception))
 
     def test_multi_sample_vcf(self):
         temp_path = tempfile.TemporaryDirectory()

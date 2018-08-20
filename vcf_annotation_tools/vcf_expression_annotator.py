@@ -111,7 +111,7 @@ def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_colu
         if len(subset) > 0:
             expressions[item] = subset[expression_column].sum()
         else:
-            expressions[item] = 0.0
+            raise Exception("ERROR: {} not found in expression file.".format(item))
     if is_multi_sample:
         entry.FORMAT += [tag]
         entry.call_for_sample[sample_name].data[tag] = to_array(expressions)
