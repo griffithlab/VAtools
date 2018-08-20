@@ -104,14 +104,21 @@ def create_vcf_writer(args, vcf_reader):
         output_file = args.output_vcf
     return vcfpy.Writer.from_path(output_file, new_header)
 
-def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_column, expression_column):
+def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_column, expression_column, ignore_transcript_version):
     expressions = {}
     for item in items:
-        subset = df.loc[df[id_column] == item]
+        if tag == 'TX' and ignore_transcript_version:
+            df['transcript_without_version'] = df[id_column].apply(lambda x: x.split('.')[0])
+            subset = df.loc[df['transcript_without_version'] == item.split('.')[0]]
+        else:
+            subset = df.loc[df[id_column] == item]
         if len(subset) > 0:
             expressions[item] = subset[expression_column].sum()
         else:
-            raise Exception("ERROR: {} not found in expression file.".format(item))
+            if tag == 'TX' and ignore_transcript_version:
+                raise Exception("ERROR: Transcript {} not found in expression file.".format(item.split('.')[0]))
+            else:
+                raise Exception("ERROR: {} not found in expression file.".format(item))
     if is_multi_sample:
         entry.FORMAT += [tag]
         entry.call_for_sample[sample_name].data[tag] = to_array(expressions)
@@ -159,6 +166,11 @@ def define_parser():
         help="Path to write the output VCF file. If not provided, the output VCF file will be "
             +"written next to the input VCF file with a .tx.vcf or .gx.vcf file ending."
     )
+    parser.add_argument(
+        "--ignore-transcript-version",
+        help="Only match on the Ensembl transcript ID without regards to the version.",
+        action="store_true"
+    )
 
     return parser
 
@@ -201,11 +213,11 @@ def main(args_input = sys.argv[1:]):
         if args.mode == 'gene':
             genes = list(genes)
             if len(genes) > 0:
-                add_expressions(entry, is_multi_sample, args.sample_name, df, genes, 'GX', id_column, expression_column)
+                add_expressions(entry, is_multi_sample, args.sample_name, df, genes, 'GX', id_column, expression_column, False)
         elif args.mode == 'transcript':
             transcript_ids = list(transcript_ids)
             if len(transcript_ids) > 0:
-                add_expressions(entry, is_multi_sample, args.sample_name, df, transcript_ids, 'TX', id_column, expression_column)
+                add_expressions(entry, is_multi_sample, args.sample_name, df, transcript_ids, 'TX', id_column, expression_column, args.ignore_transcript_version)
         vcf_writer.write_record(entry)
 
     vcf_reader.close()
