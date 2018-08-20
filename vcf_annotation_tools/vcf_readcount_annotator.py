@@ -15,7 +15,8 @@ def define_parser():
     )
     parser.add_argument(
         "bam_readcount_file",
-        help="A bam-readcount output file"
+        help="A bam-readcount output file",
+        nargs='+',
     )
     parser.add_argument(
         "data_type",
@@ -44,17 +45,18 @@ def parse_brct_field(brcts):
 
 def parse_bam_readcount_file(args):
     coverage = {}
-    with open(args.bam_readcount_file, 'r') as reader:
-        coverage_tsv_reader = csv.reader(reader, delimiter='\t')
-        for row in coverage_tsv_reader:
-            chromosome     = row[0]
-            position       = row[1]
-            reference_base = row[2].upper()
-            depth          = row[3]
-            brct           = row[4:]
-            parsed_brct = parse_brct_field(brct)
-            parsed_brct['depth'] = depth
-            coverage[(chromosome,position,reference_base)] = parsed_brct
+    for bam_readcount_file in args.bam_readcount_file:
+        with open(bam_readcount_file, 'r') as reader:
+            coverage_tsv_reader = csv.reader(reader, delimiter='\t')
+            for row in coverage_tsv_reader:
+                chromosome     = row[0]
+                position       = row[1]
+                reference_base = row[2].upper()
+                depth          = row[3]
+                brct           = row[4:]
+                parsed_brct = parse_brct_field(brct)
+                parsed_brct['depth'] = depth
+                coverage[(chromosome,position,reference_base)] = parsed_brct
     return coverage
 
 def is_insertion(ref, alt):
