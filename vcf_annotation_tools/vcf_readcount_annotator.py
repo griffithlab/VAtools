@@ -34,6 +34,12 @@ def define_parser():
         help="Path to write the output VCF file. If not provided, the output VCF file will be "
             +"written next to the input VCF file with a .readcount.vcf file ending."
     )
+    parser.add_argument(
+        "-z", "--write-missing-counts-as-zero",
+        help="The readcount fields for any positions that are not found in the bam_readcount_file(s) "
+            +"will be filled with 0s.",
+        action="store_true"
+    )
     return parser
 
 def parse_brct_field(brcts):
@@ -179,8 +185,19 @@ def main(args_input = sys.argv[1:]):
         (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, genotype_alt, entry.POS)
         brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
         if brct is None:
-            vcf_writer.write_record(entry)
-            continue
+            if args.write_missing_counts_as_zero:
+                write_depth(entry, sample_name, depth_field, 0)
+                if frequency_field not in entry.FORMAT:
+                    entry.FORMAT += [frequency_field]
+                vafs = [0] * len(alts)
+                entry.call_for_sample[sample_name].data[frequency_field] = vafs
+                ads = [0] * (len(alts) + 1)
+                entry.call_for_sample[sample_name].data[count_field] = ads
+                vcf_writer.write_record(entry)
+                continue
+            else:
+                vcf_writer.write_record(entry)
+                continue
 
         #DP - read depth
         depth = brct['depth']
