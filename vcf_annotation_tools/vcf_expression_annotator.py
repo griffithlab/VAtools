@@ -108,15 +108,15 @@ def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_colu
     expressions = {}
     for item in items:
         if tag == 'TX' and ignore_transcript_version:
-            df['transcript_without_version'] = df[id_column].apply(lambda x: x.split('.')[0])
-            subset = df.loc[df['transcript_without_version'] == item.split('.')[0]]
+            df['transcript_without_version'] = df[id_column].apply(lambda x: re.sub(r'\.[0-9]+$', '', x))
+            subset = df.loc[df['transcript_without_version'] == re.sub(r'\.[0-9]+$', '', item)]
         else:
             subset = df.loc[df[id_column] == item]
         if len(subset) > 0:
             expressions[item] = subset[expression_column].sum()
         else:
             if tag == 'TX' and ignore_transcript_version:
-                raise Exception("ERROR: Transcript {} not found in expression file.".format(item.split('.')[0]))
+                raise Exception("ERROR: Transcript {} not found in expression file.".format(re.sub(r'\.[0-9]+$', '', item)))
             else:
                 raise Exception("ERROR: {} not found in expression file.".format(item))
     if is_multi_sample:
@@ -168,7 +168,7 @@ def define_parser():
     )
     parser.add_argument(
         "--ignore-transcript-version",
-        help="Only match on the Ensembl transcript ID without regards to the version.",
+        help='Assumes that the final period and number denotes the transcript version and ignores it (i.e. for "ENST00001234.3" - ignores the ".3").',
         action="store_true"
     )
 
