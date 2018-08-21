@@ -15,7 +15,8 @@ def define_parser():
     )
     parser.add_argument(
         "bam_readcount_file",
-        help="A bam-readcount output file"
+        help="A bam-readcount output file",
+        nargs='+',
     )
     parser.add_argument(
         "data_type",
@@ -44,17 +45,18 @@ def parse_brct_field(brcts):
 
 def parse_bam_readcount_file(args):
     coverage = {}
-    with open(args.bam_readcount_file, 'r') as reader:
-        coverage_tsv_reader = csv.reader(reader, delimiter='\t')
-        for row in coverage_tsv_reader:
-            chromosome     = row[0]
-            position       = row[1]
-            reference_base = row[2].upper()
-            depth          = row[3]
-            brct           = row[4:]
-            parsed_brct = parse_brct_field(brct)
-            parsed_brct['depth'] = depth
-            coverage[(chromosome,position,reference_base)] = parsed_brct
+    for bam_readcount_file in args.bam_readcount_file:
+        with open(bam_readcount_file, 'r') as reader:
+            coverage_tsv_reader = csv.reader(reader, delimiter='\t')
+            for row in coverage_tsv_reader:
+                chromosome     = row[0]
+                position       = row[1]
+                reference_base = row[2].upper()
+                depth          = row[3]
+                brct           = row[4:]
+                parsed_brct = parse_brct_field(brct)
+                parsed_brct['depth'] = depth
+                coverage[(chromosome,position,reference_base)] = parsed_brct
     return coverage
 
 def is_insertion(ref, alt):
@@ -138,6 +140,11 @@ def create_vcf_writer(args, vcf_reader):
         new_header.add_format_line(OrderedDict([('ID', 'RAF'), ('Number', 'A'), ('Type', 'Float'), ('Description', 'RNA Variant-allele frequency for the alt alleles')]))
     return vcfpy.Writer.from_path(output_file, new_header)
 
+def write_depth(entry, sample_name, field, value):
+    if field not in entry.FORMAT:
+        entry.FORMAT += [field]
+    entry.call_for_sample[sample_name].data[field] = value
+
 def main(args_input = sys.argv[1:]):
     parser = define_parser()
     args = parser.parse_args(args_input)
@@ -172,14 +179,21 @@ def main(args_input = sys.argv[1:]):
         (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, genotype_alt, entry.POS)
         brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
         if brct is None:
+            write_depth(entry, sample_name, depth_field, 0)
+            if frequency_field not in entry.FORMAT:
+                entry.FORMAT += [frequency_field]
+            vafs = [0] * len(alts)
+            entry.call_for_sample[sample_name].data[frequency_field] = vafs
+            if count_field not in entry.FORMAT:
+                entry.FORMAT += [count_field]
+            ads = [0] * (len(alts) + 1)
+            entry.call_for_sample[sample_name].data[count_field] = ads
             vcf_writer.write_record(entry)
             continue
 
         #DP - read depth
-        if depth_field not in entry.FORMAT:
-            entry.FORMAT += [depth_field]
         depth = brct['depth']
-        entry.call_for_sample[sample_name].data[depth_field] = depth
+        write_depth(entry, sample_name, depth_field, depth)
 
         #AF - variant allele frequencies
         if frequency_field not in entry.FORMAT:
