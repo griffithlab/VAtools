@@ -146,21 +146,19 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'gene',
         ]
         vcf_expression_annotator.main(command)
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'no_gene.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
-        temp_path.cleanup()
 
-    def test_mutation_without_matching_expression_value(self):
-        temp_path = tempfile.TemporaryDirectory()
-        os.symlink(os.path.join(self.test_data_dir, 'no_matching_expression.vcf'), os.path.join(temp_path.name, 'input.vcf'))
-        command = [
-            os.path.join(temp_path.name, 'input.vcf'),
-            os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
-            'cufflinks',
-            'gene',
-        ]
-        vcf_expression_annotator.main(command)
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'no_matching_expression.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
-        temp_path.cleanup()
+    def test_error_mutation_without_matching_expression_value(self):
+        with self.assertRaises(Exception) as context:
+            temp_path = tempfile.TemporaryDirectory()
+            os.symlink(os.path.join(self.test_data_dir, 'no_matching_expression.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+            command = [
+                os.path.join(temp_path.name, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
+                'cufflinks',
+                'gene',
+            ]
+            vcf_expression_annotator.main(command)
+        self.assertTrue('ERROR: ENSG99999999999 not found in expression file.' in str(context.exception))
 
     def test_multi_sample_vcf(self):
         temp_path = tempfile.TemporaryDirectory()
@@ -266,3 +264,57 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         vcf_expression_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.stringtie.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
         temp_path.cleanup()
+
+    def test_kallisto_with_transcript_version_in_vcf(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.transcript_version.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'kallisto.transcripts'),
+            'kallisto',
+            'transcript',
+            "--ignore-transcript-version",
+        ]
+        vcf_expression_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.kallisto.with_version.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
+        temp_path.cleanup()
+
+    def test_kallisto_with_transcript_version_in_expression_file(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'kallisto.transcript_version.transcripts'),
+            'kallisto',
+            'transcript',
+            "--ignore-transcript-version",
+        ]
+        vcf_expression_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.kallisto.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
+        temp_path.cleanup()
+
+    def test_error_kallisto_with_transcript_version_in_vcf(self):
+        with self.assertRaises(Exception) as context:
+            temp_path = tempfile.TemporaryDirectory()
+            os.symlink(os.path.join(self.test_data_dir, 'input.transcript_version.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+            command = [
+                os.path.join(temp_path.name, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'kallisto.transcripts'),
+                'kallisto',
+                'transcript',
+            ]
+            vcf_expression_annotator.main(command)
+        self.assertTrue('ERROR: ENST00000215794.1 not found in expression file.' == str(context.exception))
+
+    def test_error_kallisto_with_transcript_version_in_expression_file(self):
+        with self.assertRaises(Exception) as context:
+            temp_path = tempfile.TemporaryDirectory()
+            os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+            command = [
+                os.path.join(temp_path.name, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'kallisto.transcript_version.transcripts'),
+                'kallisto',
+                'transcript',
+            ]
+            vcf_expression_annotator.main(command)
+        self.assertTrue('ERROR: ENST00000215794 not found in expression file.' == str(context.exception))
