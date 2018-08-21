@@ -21,13 +21,38 @@ class VcfInfoEncoderTests(unittest.TestCase):
             command = [
                 os.path.join(self.test_data_dir, 'input.vcf'),
                 os.path.join(self.test_data_dir, 'info.tsv'),
-                'QSI', 
-                "test",
-                'Float',
+                'CSQ', 
+                '-d', "test",
+                '-f', 'Integer',
                 '-o', 'ztest.vcf'
             ]
             vcf_info_annotator.main(command)
-        self.assertTrue('INFO already contains a QSI field. Choose a different label' in str(context.exception))
+        self.assertTrue('INFO already contains a CSQ field. Choose a different label, or use the --overwrite flag to retain this field and overwrite values' in str(context.exception))
+
+    def test_error_new_field_no_description(self):
+        with self.assertRaises(Exception) as context:
+            command = [
+                os.path.join(self.test_data_dir, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'info.tsv'),
+                'TEST', 
+                '-o', 'ztest.vcf'
+            ]
+            vcf_info_annotator.main(command)
+        self.assertTrue("the --description and --value_format arguments are required unless updating/overwriting an existing field (with flag --overwrite)" in str(context.exception))
+
+
+    def test_overwrite_when_field_doesnt_exist(self):
+        with self.assertRaises(Exception) as context:
+            command = [
+                os.path.join(self.test_data_dir, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'info.tsv'),
+                'TEST', 
+                '-o', 'ztest.vcf',
+                '-w'
+            ]
+            vcf_info_annotator.main(command)
+        self.assertTrue("INFO field TEST does not exist and thus cannot be overwritten!" in str(context.exception))
+
 
     def test_simple_caseq(self):
         temp_path = tempfile.TemporaryDirectory()
@@ -36,10 +61,26 @@ class VcfInfoEncoderTests(unittest.TestCase):
             os.path.join(self.test_data_dir, 'input.vcf'),
             os.path.join(self.test_data_dir, 'info.tsv'),
             'TEST', 
-            "test",
-            'Float',
+            '-d', "test",
+            '-f', 'Integer',
             '-o', os.path.join(temp_path.name, 'info_annotation.vcf')
         ]
         vcf_info_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'info_annotation.vcf'), os.path.join(temp_path.name, 'info_annotation.vcf')))
+        temp_path.cleanup()
+
+    def test_overwrite_existing_field(self):
+        temp_path = tempfile.TemporaryDirectory()
+        print(temp_path)
+        command = [
+            os.path.join(self.test_data_dir, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'info.tsv'),
+            'CSQ', 
+            '-d', "test",
+            '-f', 'Integer',
+            '-w',
+            '-o', os.path.join(temp_path.name, 'info_annotation.vcf')
+        ]
+        vcf_info_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'info_overwrite.vcf'), os.path.join(temp_path.name, 'info_annotation.vcf')))
         temp_path.cleanup()
