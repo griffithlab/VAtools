@@ -21,9 +21,12 @@ def parse_tsv_file(args):
 
 def create_vcf_reader(args):
     vcf_reader = vcfpy.Reader.from_path(args.input_vcf)
-    if args.info_field in vcf_reader.header.info_ids() and not args.w:
+    if args.info_field in vcf_reader.header.info_ids() and not args.overwrite:
         vcf_reader.close()
-        raise Exception("INFO already contains a {} field. Choose a different label, or use the -w flag to retain this field and overwrite values".format(args.info_field))
+        raise Exception("INFO already contains a {} field. Choose a different label, or use the --overwrite flag to retain this field and overwrite values".format(args.info_field))
+    if args.overwrite and not args.info_field in vcf_reader.header.info_ids():
+        vcf_reader.close()
+        raise Exception("INFO field {} does not exist and thus cannot be overwritten!".format(args.info_field))
     return vcf_reader
 
 def create_vcf_writer(args, vcf_reader):
@@ -35,9 +38,9 @@ def create_vcf_writer(args, vcf_reader):
 
     new_header = vcf_reader.header.copy()
 
-    if args.w:
+    if args.overwrite:
         if args.value_format or args.description:
-            print("Warning: -w flag is set, so existing header for {} field will be retained and --value_format and --description inputs will be ignored".format(args.info_field))
+            print("Warning: --overwrite flag is set, so existing header for {} field will be retained and --value_format and --description inputs will be ignored".format(args.info_field))
     else:
         od = OrderedDict([('ID', args.info_field), ('Number', '.'), ('Type', args.value_format), ('Description', args.description)])
         if args.source:
@@ -80,7 +83,7 @@ def define_parser():
         "-s", "--source",
         help="The string to put in the \"source\" section of the INFO header line - optional "
     )
-    parser.add_argument('-w', action='store_true',
+    parser.add_argument('-w', "--overwrite", action='store_true',
         help="by default, ths tool will raise an exception if the field specified already exists in the VCF. This flag allows existing fields to be overwritten."
     )
     parser.add_argument(
@@ -94,9 +97,9 @@ def main(args_input = sys.argv[1:]):
     args = parser.parse_args(args_input)
     
     #if we're not overwriting an existing field, then these are required
-    if not args.w:
+    if not args.overwrite:
         if args.description is None or args.value_format is None:
-            raise Exception("the --description and --value_format arguments are required unless updating/overwriting an existing field (with param -w)")
+            raise Exception("the --description and --value_format arguments are required unless updating/overwriting an existing field (with flag --overwrite)")
 
     vcf_reader  = create_vcf_reader(args)
     vcf_writer = create_vcf_writer(args, vcf_reader)

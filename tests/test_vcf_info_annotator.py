@@ -27,7 +27,7 @@ class VcfInfoEncoderTests(unittest.TestCase):
                 '-o', 'ztest.vcf'
             ]
             vcf_info_annotator.main(command)
-        self.assertTrue('INFO already contains a CSQ field. Choose a different label, or use the -w flag to retain this field and overwrite values' in str(context.exception))
+        self.assertTrue('INFO already contains a CSQ field. Choose a different label, or use the --overwrite flag to retain this field and overwrite values' in str(context.exception))
 
     def test_error_new_field_no_description(self):
         with self.assertRaises(Exception) as context:
@@ -38,7 +38,21 @@ class VcfInfoEncoderTests(unittest.TestCase):
                 '-o', 'ztest.vcf'
             ]
             vcf_info_annotator.main(command)
-        self.assertTrue("the --description and --value_format arguments are required unless updating/overwriting an existing field (with param -w)" in str(context.exception))
+        self.assertTrue("the --description and --value_format arguments are required unless updating/overwriting an existing field (with flag --overwrite)" in str(context.exception))
+
+
+    def test_overwrite_when_field_doesnt_exist(self):
+        with self.assertRaises(Exception) as context:
+            command = [
+                os.path.join(self.test_data_dir, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'info.tsv'),
+                'TEST', 
+                '-o', 'ztest.vcf',
+                '-w'
+            ]
+            vcf_info_annotator.main(command)
+        self.assertTrue("INFO field TEST does not exist and thus cannot be overwritten!" in str(context.exception))
+
 
     def test_simple_caseq(self):
         temp_path = tempfile.TemporaryDirectory()
