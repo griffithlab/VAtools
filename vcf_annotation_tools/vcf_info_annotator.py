@@ -21,9 +21,9 @@ def parse_tsv_file(args):
 
 def create_vcf_reader(args):
     vcf_reader = vcfpy.Reader.from_path(args.input_vcf)
-    if args.info_field in vcf_reader.header.info_ids():
+    if args.info_field in vcf_reader.header.info_ids() and not args.w:
         vcf_reader.close()
-        raise Exception("INFO already contains a {} field. Choose a different label".format(args.info_field))
+        raise Exception("INFO already contains a {} field. Choose a different label, or use the -w flag to retain this field and overwrite values".format(args.info_field))
     return vcf_reader
 
 def create_vcf_writer(args, vcf_reader):
@@ -32,13 +32,19 @@ def create_vcf_writer(args, vcf_reader):
     else:
         (head, sep, tail) = args.input_vcf.rpartition('.vcf')
         output_file = ('').join([head, '.info.vcf', tail])
+
     new_header = vcf_reader.header.copy()
-    od = OrderedDict([('ID', args.info_field), ('Number', '.'), ('Type', args.value_format), ('Description', args.description)])
-    if args.source:
-        od['Source'] = args.source
-    if args.version:
-        od['Version'] = args.version
-    new_header.add_info_line(od)
+
+    if args.w:
+        if args.value_format or args.description:
+            print("Warning: -w flag is set, so existing header for {} field will be retained and --value_format and --description inputs will be ignored".format(args.info_field))
+    else:
+        od = OrderedDict([('ID', args.info_field), ('Number', '.'), ('Type', args.value_format), ('Description', args.description)])
+        if args.source:
+            od['Source'] = args.source
+        if args.version:
+            od['Version'] = args.version
+        new_header.add_info_line(od)
     return vcfpy.Writer.from_path(output_file, new_header)
 
 def define_parser():
@@ -54,14 +60,14 @@ def define_parser():
     )
     parser.add_argument(
         "info_field",
-        help="The INFO field name to add"
+        help="The INFO field name to use"
     )
     parser.add_argument(
-        "description",
+        "-d", "--description",
         help="The description of the INFO field to add to the header"
     )
     parser.add_argument(
-        "value_format",
+        "-f", "--value_format",
         choices=['Integer', 'Float', 'Flag', 'Character', 'String'],
         help="The format of the values to be placed into the info field. ",
     )
@@ -74,6 +80,9 @@ def define_parser():
         "-s", "--source",
         help="The string to put in the \"source\" section of the INFO header line - optional "
     )
+    parser.add_argument('-w', action='store_true',
+        help="by default, ths tool will raise an exception if the field specified already exists in the VCF. This flag allows existing fields to be overwritten."
+    )
     parser.add_argument(
         "-v", "--version",
         help="The string to put in the \"version\" section of the INFO header line - optional "
@@ -84,6 +93,11 @@ def main(args_input = sys.argv[1:]):
     parser = define_parser()
     args = parser.parse_args(args_input)
     
+    #if we're not overwriting an existing field, then these are required
+    if not args.w:
+        if args.description is None or args.value_format is None:
+            raise Exception("the --description and --value_format arguments are required unless updating/overwriting an existing field (with param -w)")
+
     vcf_reader  = create_vcf_reader(args)
     vcf_writer = create_vcf_writer(args, vcf_reader)
 
