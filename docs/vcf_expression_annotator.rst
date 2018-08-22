@@ -12,7 +12,13 @@ be specified. This will result in the expression value to be written to the
 
 The input VCF needs to be annotated with VEP with gene and transcript information so
 that the VCF Expression Annotator can match a variant's gene and transcript
-identifier in the VCF to the one in the expression file.
+identifier in the VCF to the one in the expression file. Depending on the
+expression software used, the transcript identifiers might contain version
+numbers. To add transcript version numbers to your VEP annotation, use the
+``--transcript_version`` when running VEP. You can also use the
+``--ignore-transcript-version`` flag of the VCF Expression Annotator to ignore
+the transcript version when finding the matching entry in your expression
+file.
 
 The VCF Expression Annotator also accepts a custom tab-delimited (TSV) file input for the
 expression file. This TSV file will need to contain one column with gene or
