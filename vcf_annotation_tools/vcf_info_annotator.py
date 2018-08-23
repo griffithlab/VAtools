@@ -15,7 +15,8 @@ def parse_tsv_file(args):
     with open(args.values_file,'r') as tsvin:
         tsvin = csv.reader(tsvin, delimiter='\t')
         for row in tsvin:
-            values[(row[0] + ":" + row[1])] = row[2]
+            if any(x.strip() for x in row): #skip blank lines
+                values[(row[0] + ":" + row[1])] = row[2]
     return values
 
 
@@ -42,7 +43,7 @@ def create_vcf_writer(args, vcf_reader):
         if args.value_format or args.description:
             print("Warning: --overwrite flag is set, so existing header for {} field will be retained and --value_format and --description inputs will be ignored".format(args.info_field))
     else:
-        od = OrderedDict([('ID', args.info_field), ('Number', '.'), ('Type', args.value_format), ('Description', args.description)])
+        od = OrderedDict([('ID', args.info_field), ('Number', '1'), ('Type', args.value_format), ('Description', args.description)])
         if args.source:
             od['Source'] = args.source
         if args.version:
