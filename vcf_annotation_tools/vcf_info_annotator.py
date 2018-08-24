@@ -73,7 +73,7 @@ def define_parser():
     parser.add_argument(
         "-f", "--value_format",
         choices=['Integer', 'Float', 'Flag', 'Character', 'String'],
-        help="The format of the values to be placed into the info field. ",
+        help="The format of the values to be placed into the info field.",
     )
     parser.add_argument(
         "-o", "--output-vcf",
@@ -82,21 +82,21 @@ def define_parser():
     )
     parser.add_argument(
         "-s", "--source",
-        help="The string to put in the \"source\" section of the INFO header line - optional "
+        help="The string to put in the \"source\" section of the INFO header line - optional"
     )
     parser.add_argument('-w', "--overwrite", action='store_true',
         help="by default, ths tool will raise an exception if the field specified already exists in the VCF. This flag allows existing fields to be overwritten."
     )
     parser.add_argument(
         "-v", "--version",
-        help="The string to put in the \"version\" section of the INFO header line - optional "
+        help="The string to put in the \"version\" section of the INFO header line - optional"
     )
     return parser
 
 def main(args_input = sys.argv[1:]):
     parser = define_parser()
     args = parser.parse_args(args_input)
-    
+
     #if we're not overwriting an existing field, then these are required
     if not args.overwrite:
         if args.description is None or args.value_format is None:
