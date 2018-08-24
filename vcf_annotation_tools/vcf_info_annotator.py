@@ -15,7 +15,8 @@ def parse_tsv_file(args):
     with open(args.values_file,'r') as tsvin:
         tsvin = csv.reader(tsvin, delimiter='\t')
         for row in tsvin:
-            values[(row[0] + ":" + row[1])] = row[2]
+            if any(x.strip() for x in row): #skip blank lines
+                values[(row[0] + ":" + row[1])] = row[2]
     return values
 
 
@@ -42,7 +43,7 @@ def create_vcf_writer(args, vcf_reader):
         if args.value_format or args.description:
             print("Warning: --overwrite flag is set, so existing header for {} field will be retained and --value_format and --description inputs will be ignored".format(args.info_field))
     else:
-        od = OrderedDict([('ID', args.info_field), ('Number', '.'), ('Type', args.value_format), ('Description', args.description)])
+        od = OrderedDict([('ID', args.info_field), ('Number', '1'), ('Type', args.value_format), ('Description', args.description)])
         if args.source:
             od['Source'] = args.source
         if args.version:
@@ -72,7 +73,7 @@ def define_parser():
     parser.add_argument(
         "-f", "--value_format",
         choices=['Integer', 'Float', 'Flag', 'Character', 'String'],
-        help="The format of the values to be placed into the info field. ",
+        help="The format of the values to be placed into the info field.",
     )
     parser.add_argument(
         "-o", "--output-vcf",
@@ -81,21 +82,21 @@ def define_parser():
     )
     parser.add_argument(
         "-s", "--source",
-        help="The string to put in the \"source\" section of the INFO header line - optional "
+        help="The string to put in the \"source\" section of the INFO header line - optional"
     )
     parser.add_argument('-w', "--overwrite", action='store_true',
         help="by default, ths tool will raise an exception if the field specified already exists in the VCF. This flag allows existing fields to be overwritten."
     )
     parser.add_argument(
         "-v", "--version",
-        help="The string to put in the \"version\" section of the INFO header line - optional "
+        help="The string to put in the \"version\" section of the INFO header line - optional"
     )
     return parser
 
 def main(args_input = sys.argv[1:]):
     parser = define_parser()
     args = parser.parse_args(args_input)
-    
+
     #if we're not overwriting an existing field, then these are required
     if not args.overwrite:
         if args.description is None or args.value_format is None:
@@ -108,7 +109,7 @@ def main(args_input = sys.argv[1:]):
 
     for entry in vcf_reader:
         if entry.CHROM + ":" + str(entry.POS) in values:
-            entry.INFO[args.info_field] = [values[entry.CHROM + ":" + str(entry.POS)]]
+            entry.INFO[args.info_field] = values[entry.CHROM + ":" + str(entry.POS)]
         vcf_writer.write_record(entry)
 
     vcf_reader.close()

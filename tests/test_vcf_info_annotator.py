@@ -53,7 +53,6 @@ class VcfInfoEncoderTests(unittest.TestCase):
             vcf_info_annotator.main(command)
         self.assertTrue("INFO field TEST does not exist and thus cannot be overwritten!" in str(context.exception))
 
-
     def test_simple_caseq(self):
         temp_path = tempfile.TemporaryDirectory()
         print(temp_path)
@@ -67,6 +66,35 @@ class VcfInfoEncoderTests(unittest.TestCase):
         ]
         vcf_info_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'info_annotation.vcf'), os.path.join(temp_path.name, 'info_annotation.vcf')))
+        temp_path.cleanup()
+
+    def test_simple_string(self):
+        temp_path = tempfile.TemporaryDirectory()
+        print(temp_path)
+        command = [
+            os.path.join(self.test_data_dir, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'info3.tsv'),
+            'TEST', 
+            '-d', "test",
+            '-f', 'String',
+            '-o', os.path.join(temp_path.name, 'info3_output.vcf')
+        ]
+        vcf_info_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'info3_output.vcf'), os.path.join(temp_path.name, 'info3_output.vcf')))
+        temp_path.cleanup()
+
+    def test_addwhile_overwriteset(self):
+        temp_path = tempfile.TemporaryDirectory()
+        print(temp_path)
+        command = [
+            os.path.join(self.test_data_dir, 'info2_input.vcf'),
+            os.path.join(self.test_data_dir, 'info2.tsv'),
+            'MQ0', 
+            '-w',
+            '-o', os.path.join(temp_path.name, 'info2_output.vcf')
+        ]
+        vcf_info_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'info2_output.vcf'), os.path.join(temp_path.name, 'info2_output.vcf')))
         temp_path.cleanup()
 
     def test_overwrite_existing_field(self):
