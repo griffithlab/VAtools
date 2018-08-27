@@ -5,7 +5,8 @@ import py_compile
 from vcf_annotation_tools import vcf_expression_annotator
 import tempfile
 from filecmp import cmp
-import warnings
+import logging
+from testfixtures import LogCapture, StringComparison as S
 
 class VcfExpressionEncoderTests(unittest.TestCase):
     @classmethod
@@ -124,17 +125,19 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         self.assertTrue('ERROR: expression_column header nonexistent_column does not exist in expression_file' in str(context.exception))
 
     def test_warning_no_csq_for_variants(self):
-        with warnings.catch_warnings(record=True) as w:
+        logging.disable(logging.NOTSET)
+        with LogCapture() as l:
+            temp_path = tempfile.TemporaryDirectory()
+            os.symlink(os.path.join(self.test_data_dir, 'input.no_csq.vcf'), os.path.join(temp_path.name, 'input.vcf'))
             command = [
-                os.path.join(self.test_data_dir, 'input.no_csq.vcf'),
+                os.path.join(temp_path.name, 'input.vcf'),
                 os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
                 'cufflinks',
                 'gene',
             ]
             vcf_expression_annotator.main(command)
-            self.assertEqual(len(w), 1)
-            self.assertTrue(issubclass(w[-1].category, Warning))
-            self.assertTrue("Variant is missing VEP annotation. INFO column doesn't contain CSQ field for variant" in str(w[-1].message))
+            temp_path.cleanup()
+            l.check_present(('root', 'WARNING', S("Variant is missing VEP annotation. INFO column doesn't contain CSQ field for variant")))
 
     def test_mutation_without_gene_in_csq(self):
         temp_path = tempfile.TemporaryDirectory()
@@ -147,8 +150,9 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         ]
         vcf_expression_annotator.main(command)
 
-    def test_error_mutation_without_matching_expression_value(self):
-        with self.assertRaises(Exception) as context:
+    def test_warning_mutation_without_matching_expression_value(self):
+        logging.disable(logging.NOTSET)
+        with LogCapture() as l:
             temp_path = tempfile.TemporaryDirectory()
             os.symlink(os.path.join(self.test_data_dir, 'no_matching_expression.vcf'), os.path.join(temp_path.name, 'input.vcf'))
             command = [
@@ -158,7 +162,8 @@ class VcfExpressionEncoderTests(unittest.TestCase):
                 'gene',
             ]
             vcf_expression_annotator.main(command)
-        self.assertTrue('ERROR: ENSG99999999999 not found in expression file.' in str(context.exception))
+            temp_path.cleanup()
+            l.check_present(('root', 'WARNING', "1 of 1 transcripts did not have an expression entry for their gene id."))
 
     def test_multi_sample_vcf(self):
         temp_path = tempfile.TemporaryDirectory()
@@ -293,8 +298,9 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.kallisto.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
         temp_path.cleanup()
 
-    def test_error_kallisto_with_transcript_version_in_vcf(self):
-        with self.assertRaises(Exception) as context:
+    def test_warning_kallisto_with_transcript_version_in_vcf(self):
+        logging.disable(logging.NOTSET)
+        with LogCapture() as l:
             temp_path = tempfile.TemporaryDirectory()
             os.symlink(os.path.join(self.test_data_dir, 'input.transcript_version.vcf'), os.path.join(temp_path.name, 'input.vcf'))
             command = [
@@ -304,10 +310,12 @@ class VcfExpressionEncoderTests(unittest.TestCase):
                 'transcript',
             ]
             vcf_expression_annotator.main(command)
-        self.assertTrue('ERROR: ENST00000215794.1 not found in expression file.' == str(context.exception))
+            temp_path.cleanup()
+            l.check_present(('root', 'WARNING', "1 of 1 transcripts did not have an expression entry for their transcript id."))
 
-    def test_error_kallisto_with_transcript_version_in_expression_file(self):
-        with self.assertRaises(Exception) as context:
+    def test_warning_kallisto_with_transcript_version_in_expression_file(self):
+        logging.disable(logging.NOTSET)
+        with LogCapture() as l:
             temp_path = tempfile.TemporaryDirectory()
             os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))
             command = [
@@ -317,4 +325,5 @@ class VcfExpressionEncoderTests(unittest.TestCase):
                 'transcript',
             ]
             vcf_expression_annotator.main(command)
-        self.assertTrue('ERROR: ENST00000215794 not found in expression file.' == str(context.exception))
+            temp_path.cleanup()
+            l.check_present(('root', 'WARNING', "1 of 1 transcripts did not have an expression entry for their transcript id."))
