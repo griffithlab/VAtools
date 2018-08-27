@@ -16,6 +16,7 @@ setup(
         'pysam',
         'pandas',
         'gtfparse',
+        'testfixtures',
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
