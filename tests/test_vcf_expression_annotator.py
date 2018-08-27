@@ -139,9 +139,9 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             temp_path.cleanup()
             l.check_present(('root', 'WARNING', S("Variant is missing VEP annotation. INFO column doesn't contain CSQ field for variant")))
 
-    def test_mutation_without_gene_in_csq(self):
+    def test_skip_variant_without_gene_in_csq(self):
         temp_path = tempfile.TemporaryDirectory()
-        os.symlink(os.path.join(self.test_data_dir, 'no_gene.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        os.symlink(os.path.join(self.test_data_dir, 'input.ensr_transcript.vcf'), os.path.join(temp_path.name, 'input.vcf'))
         command = [
             os.path.join(temp_path.name, 'input.vcf'),
             os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
@@ -149,6 +149,8 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'gene',
         ]
         vcf_expression_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.ensr_transcript.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
+        temp_path.cleanup()
 
     def test_warning_mutation_without_matching_expression_value(self):
         logging.disable(logging.NOTSET)
