@@ -327,3 +327,16 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             vcf_expression_annotator.main(command)
             temp_path.cleanup()
             l.check_present(('root', 'WARNING', "1 of 1 transcripts did not have an expression entry for their transcript id."))
+
+    def test_skip_ENSR_transcript(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.ensr_transcript.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'kallisto.transcripts'),
+            'kallisto',
+            'transcript',
+        ]
+        vcf_expression_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.ensr_transcript.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
+        temp_path.cleanup()

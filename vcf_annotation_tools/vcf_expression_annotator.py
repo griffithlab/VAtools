@@ -202,7 +202,7 @@ def main(args_input = sys.argv[1:]):
             continue
         for transcript in entry.INFO['CSQ']:
             for key, value in zip(csq_format, transcript.split('|')):
-                if key == 'Feature' and value != '':
+                if key == 'Feature' and value != '' and not value.startswith('ENSR'):
                     transcript_ids.add(value)
                 if args.format == 'kallisto':
                     if key == 'SYMBOL' and value != '':
