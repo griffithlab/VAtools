@@ -5,7 +5,7 @@ import pandas as pd
 import re
 from collections import OrderedDict
 from gtfparse import read_gtf
-import warnings
+import logging
 
 def resolve_id_column(args):
     if args.format == 'cufflinks':
@@ -104,9 +104,10 @@ def create_vcf_writer(args, vcf_reader):
         output_file = args.output_vcf
     return vcfpy.Writer.from_path(output_file, new_header)
 
-def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_column, expression_column, ignore_transcript_version):
+def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_column, expression_column, ignore_transcript_version, missing_expressions_count, entry_count):
     expressions = {}
     for item in items:
+        entry_count += 1
         if tag == 'TX' and ignore_transcript_version:
             df['transcript_without_version'] = df[id_column].apply(lambda x: re.sub(r'\.[0-9]+$', '', x))
             subset = df.loc[df['transcript_without_version'] == re.sub(r'\.[0-9]+$', '', item)]
@@ -115,16 +116,14 @@ def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_colu
         if len(subset) > 0:
             expressions[item] = subset[expression_column].sum()
         else:
-            if tag == 'TX' and ignore_transcript_version:
-                raise Exception("ERROR: Transcript {} not found in expression file.".format(re.sub(r'\.[0-9]+$', '', item)))
-            else:
-                raise Exception("ERROR: {} not found in expression file.".format(item))
+            missing_expressions_count += 1
+            return (entry, missing_expressions_count, entry_count)
     if is_multi_sample:
         entry.FORMAT += [tag]
         entry.call_for_sample[sample_name].data[tag] = to_array(expressions)
     else:
         entry.add_format(tag, to_array(expressions))
-    return entry
+    return (entry, missing_expressions_count, entry_count)
 
 def define_parser():
     parser = argparse.ArgumentParser("vcf-expression-annotator")
@@ -192,16 +191,18 @@ def main(args_input = sys.argv[1:]):
 
     (df, id_column, expression_column) = parse_expression_file(args, vcf_reader, vcf_writer)
 
+    missing_expressions_count = 0
+    entry_count = 0
     for entry in vcf_reader:
         transcript_ids = set()
         genes = set()
         if 'CSQ' not in entry.INFO:
-            warnings.warn("Variant is missing VEP annotation. INFO column doesn't contain CSQ field for variant {}".format(entry), Warning)
+            logging.warning("Variant is missing VEP annotation. INFO column doesn't contain CSQ field for variant {}".format(entry))
             vcf_writer.write_record(entry)
             continue
         for transcript in entry.INFO['CSQ']:
             for key, value in zip(csq_format, transcript.split('|')):
-                if key == 'Feature' and value != '':
+                if key == 'Feature' and value != '' and not value.startswith('ENSR'):
                     transcript_ids.add(value)
                 if args.format == 'kallisto':
                     if key == 'SYMBOL' and value != '':
@@ -213,15 +214,18 @@ def main(args_input = sys.argv[1:]):
         if args.mode == 'gene':
             genes = list(genes)
             if len(genes) > 0:
-                add_expressions(entry, is_multi_sample, args.sample_name, df, genes, 'GX', id_column, expression_column, False)
+                (entry, missing_expressions_count, entry_count) = add_expressions(entry, is_multi_sample, args.sample_name, df, genes, 'GX', id_column, expression_column, False, missing_expressions_count, entry_count)
         elif args.mode == 'transcript':
             transcript_ids = list(transcript_ids)
             if len(transcript_ids) > 0:
-                add_expressions(entry, is_multi_sample, args.sample_name, df, transcript_ids, 'TX', id_column, expression_column, args.ignore_transcript_version)
+                (entry, missing_expressions_count, entry_count) = add_expressions(entry, is_multi_sample, args.sample_name, df, transcript_ids, 'TX', id_column, expression_column, args.ignore_transcript_version, missing_expressions_count, entry_count)
         vcf_writer.write_record(entry)
 
     vcf_reader.close()
     vcf_writer.close()
+
+    if missing_expressions_count > 0:
+        logging.warning("{} of {} transcripts did not have an expression entry for their {} id.".format(missing_expressions_count, entry_count, args.mode))
 
 if __name__ == '__main__':
     main()

@@ -6,6 +6,7 @@ before_install:
     - pip install pysam
     - pip install pandas
     - pip install gtfparse
+    - pip install testfixtures
 install: true
 script:
     - python3 -m unittest discover -v
