@@ -241,12 +241,10 @@ def main(args_input = sys.argv[1:]):
             other_samples = vcf_reader.header.samples.names
             other_samples.remove(sample_name)
             for sample in other_samples:
-                if (count_field in entry.call_for_sample[sample].data and
-                   (not isinstance(entry.call_for_sample[sample].data[count_field], list))):
-                    entry.call_for_sample[sample].data[count_field] = [entry.call_for_sample[sample].data[count_field]]
-                if (frequency_field in entry.call_for_sample[sample].data and
-                   (not isinstance(entry.call_for_sample[sample].data[frequency_field], list))):
-                    entry.call_for_sample[sample].data[frequency_field] = [entry.call_for_sample[sample].data[frequency_field]]
+                sample_data = entry.call_for_sample[sample].data
+                for field in [count_field, frequency_field]:
+                    if field in sample_data and (not isinstance(sample_data[field], list)):
+                        sample_data[field] = [sample_data[field]]
 
         vcf_writer.write_record(entry)
 
