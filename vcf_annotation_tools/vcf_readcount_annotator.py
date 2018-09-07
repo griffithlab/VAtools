@@ -115,7 +115,7 @@ def create_vcf_reader(args):
             sample_name = args.sample_name
     else:
         sample_name = vcf_reader.header.samples.names[0]
-    return vcf_reader, sample_name
+    return vcf_reader, sample_name, is_multi_sample
 
 def create_vcf_writer(args, vcf_reader):
     if args.output_vcf:
@@ -150,7 +150,7 @@ def main(args_input = sys.argv[1:]):
     args = parser.parse_args(args_input)
 
     read_counts = parse_bam_readcount_file(args)
-    (vcf_reader, sample_name) = create_vcf_reader(args)
+    (vcf_reader, sample_name, is_multi_sample) = create_vcf_reader(args)
     vcf_writer = create_vcf_writer(args, vcf_reader)
 
     if args.data_type == 'DNA':
@@ -231,6 +231,20 @@ def main(args_input = sys.argv[1:]):
             else:
                 ads.append(0)
         entry.call_for_sample[sample_name].data[count_field] = ads
+
+        #The Number of the AD and AF fields in the input VCF might be 1,
+        #but we are now writing R/A number fields now which are is-many
+        #If this is an multi-sample VCF the parsed entries of the other
+        #samples need to be changed from a single number to an array or
+        #else the writer will throw an error
+        if is_multi_sample:
+            other_samples = vcf_reader.header.samples.names
+            other_samples.remove(sample_name)
+            for sample in other_samples:
+                sample_data = entry.call_for_sample[sample].data
+                for field in [count_field, frequency_field]:
+                    if field in sample_data and (not isinstance(sample_data[field], list)):
+                        sample_data[field] = [sample_data[field]]
 
         vcf_writer.write_record(entry)
 
