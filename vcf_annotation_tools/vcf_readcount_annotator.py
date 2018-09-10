@@ -238,7 +238,7 @@ def main(args_input = sys.argv[1:]):
         #samples need to be changed from a single number to an array or
         #else the writer will throw an error
         if is_multi_sample:
-            other_samples = vcf_reader.header.samples.names
+            other_samples = vcf_reader.header.samples.names.copy()
             other_samples.remove(sample_name)
             for sample in other_samples:
                 sample_data = entry.call_for_sample[sample].data
