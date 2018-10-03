@@ -169,14 +169,7 @@ def main(args_input = sys.argv[1:]):
         reference  = entry.REF
         alts       = entry.ALT
 
-        genotype_alts = [a for a in entry.call_for_sample[sample_name].gt_bases if a != reference]
-        if len(list(set(genotype_alts))) == 1:
-            genotype_alt = genotype_alts[0]
-        else:
-            vcf_writer.write_record(entry)
-            continue
-
-        (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, genotype_alt, entry.POS)
+        (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alts[0].serialize(), entry.POS)
         brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
         if brct is None:
             write_depth(entry, sample_name, depth_field, 0)

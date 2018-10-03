@@ -134,3 +134,16 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             '-s', 'TUMOR'
         ]
         vcf_readcount_annotator.main(command)
+
+    def test_hom_ref_genotype(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'hom_ref.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'hom_ref.bam_readcount'),
+            'DNA',
+            '-s', 'NORMAL'
+        ]
+        vcf_readcount_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'hom_ref.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        temp_path.cleanup()
