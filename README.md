@@ -16,7 +16,7 @@ A tool that will add data from a tab-delimited file to any user-specified field 
 
 ## Documentation
 
-Please see vatools.org for the full documentation.
+Please see [vatools.org](vatools.org) for the full documentation.
 
 ## Install
 
