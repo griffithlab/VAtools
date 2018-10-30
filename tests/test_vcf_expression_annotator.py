@@ -194,6 +194,19 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multiple_transcripts.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
         temp_path.cleanup()
 
+    def test_multiple_transcripts_with_one_missing_gene(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'multiple_transcripts_one_missing_gene.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
+            'cufflinks',
+            'gene',
+        ]
+        vcf_expression_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multiple_transcripts_one_missing_gene.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
+        temp_path.cleanup()
+
     def test_cufflinks_format_gene_mode(self):
         temp_path = tempfile.TemporaryDirectory()
         os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))
