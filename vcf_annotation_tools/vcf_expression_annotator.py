@@ -117,7 +117,6 @@ def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_colu
             expressions[item] = subset[expression_column].sum()
         else:
             missing_expressions_count += 1
-            return (entry, missing_expressions_count, entry_count)
     if is_multi_sample:
         entry.FORMAT += [tag]
         entry.call_for_sample[sample_name].data[tag] = to_array(expressions)
