@@ -37,6 +37,16 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             vcf_readcount_annotator.main(command)
         self.assertTrue('does not contain a sample column for sample nonexistent_sample.' in str(context.exception))
 
+    def test_error_duplicate_bam_readcount_entries(self):
+        with self.assertRaises(Exception) as context:
+            command = [
+                os.path.join(self.test_data_dir, 'multiple_samples.vcf'),
+                os.path.join(self.test_data_dir, 'duplicate.bam_readcount'),
+                'DNA',
+            ]
+            vcf_readcount_annotator.main(command)
+        self.assertTrue("Duplicate bam-readcount entry for chr 22 pos 16202096 ref C:" in str(context.exception))
+
     def test_single_sample_vcf_without_readcounts_annotations_dna_mode(self):
         temp_path = tempfile.TemporaryDirectory()
         os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))

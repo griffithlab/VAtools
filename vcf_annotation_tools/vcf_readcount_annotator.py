@@ -56,6 +56,8 @@ def parse_bam_readcount_file(args):
                 brct           = row[4:]
                 parsed_brct = parse_brct_field(brct)
                 parsed_brct['depth'] = depth
+                if (chromosome, position, reference_base) in coverage and parsed_brct != coverage[(chromosome,position,reference_base)]:
+                    raise Exception("Duplicate bam-readcount entry for chr {} pos {} ref {}:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, coverage[(chromosome,position,reference_base)]))
                 coverage[(chromosome,position,reference_base)] = parsed_brct
     return coverage
 
@@ -209,6 +211,8 @@ def main(args_input = sys.argv[1:]):
         #AD - ref, var1..varN counts
         if count_field not in entry.FORMAT:
             entry.FORMAT += [count_field]
+        (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alts[0].serialize(), entry.POS)
+        brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
         ads = []
         ads.append(brct[ref_base])
         for alt in alts:
