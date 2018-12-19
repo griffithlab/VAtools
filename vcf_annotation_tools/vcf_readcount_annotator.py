@@ -57,7 +57,9 @@ def parse_bam_readcount_file(args):
                 parsed_brct = parse_brct_field(brct)
                 parsed_brct['depth'] = depth
                 if (chromosome, position, reference_base) in coverage and parsed_brct != coverage[(chromosome,position,reference_base)]:
-                    raise Exception("Duplicate bam-readcount entry for chr {} pos {} ref {}:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, coverage[(chromosome,position,reference_base)]))
+                    #raise Exception("Duplicate bam-readcount entry for chr {} pos {} ref {}:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, coverage[(chromosome,position,reference_base)]))
+                    coverage[(chromosome,position,reference_base)] = None
+                    continue
                 coverage[(chromosome,position,reference_base)] = parsed_brct
     return coverage
 
