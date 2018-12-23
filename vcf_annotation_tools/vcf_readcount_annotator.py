@@ -57,10 +57,15 @@ def parse_bam_readcount_file(args):
                 parsed_brct = parse_brct_field(brct)
                 parsed_brct['depth'] = depth
                 if (chromosome, position, reference_base) in coverage and parsed_brct != coverage[(chromosome,position,reference_base)]:
-                    #raise Exception("Duplicate bam-readcount entry for chr {} pos {} ref {}:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, coverage[(chromosome,position,reference_base)]))
-                    coverage[(chromosome,position,reference_base)] = None
-                    continue
-                coverage[(chromosome,position,reference_base)] = parsed_brct
+                    prev_brct = coverage[(chromosome, position, reference_base)]
+                    if prev_brct["depth"] == depth:
+                        coverage[(chromosome, position, reference_base)] = {"depth" : depth}
+                        print("Warning: Duplicate bam-readcount entry for chr {} pos {} ref {}. Both depths match, so this field will be written, but count and frequency fields will be skipped. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
+                    else:
+                        del coverage[(chromosome, position, reference_base)]
+                        print("Warning: Duplicate bam-readcount entry for chr {} pos {} ref {}. Depths are discrepant, so neither entry will be included in the output vcf. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
+                else:
+                    coverage[(chromosome,position,reference_base)] = parsed_brct
     return coverage
 
 def is_insertion(ref, alt):
@@ -192,44 +197,47 @@ def main(args_input = sys.argv[1:]):
         depth = brct['depth']
         write_depth(entry, sample_name, depth_field, depth)
 
-        #AF - variant allele frequencies
-        if frequency_field not in entry.FORMAT:
-            entry.FORMAT += [frequency_field]
-        vafs = []
-        for alt in alts:
-            alt = alt.serialize()
-            (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alt, entry.POS)
-            brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
-            if brct is not None:
-                if var_base not in brct:
-                    print("Warning: variant base {} is not present in the bam-readcount entry for variant {} {}. This might indicate that the bam-readcount file doesn't match the VCF.".format(var_base, chromosome, start))
-                    vafs.append(0)
-                else:
-                    vafs.append(calculate_vaf(int(brct[var_base]), depth))
-            else:
-                vafs.append(0)
-        entry.call_for_sample[sample_name].data[frequency_field] = vafs
+        if len(brct) != 1: 
+        #if this is 1, then this must have been a duplicate entry where both depths matched- the only field written was depth, frequency and count fields should not be written
 
-        #AD - ref, var1..varN counts
-        if count_field not in entry.FORMAT:
-            entry.FORMAT += [count_field]
-        (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alts[0].serialize(), entry.POS)
-        brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
-        ads = []
-        ads.append(brct[ref_base])
-        for alt in alts:
-            alt = alt.serialize()
-            (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alt, entry.POS)
-            brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
-            if brct is not None:
-                if var_base not in brct:
-                    print("Warning: variant base {} is not present in the bam-readcount entry for variant {} {}. This might indicate that the bam-readcount file doesn't match the VCF.".format(var_base, chromosome, start))
-                    ads.append(0)
+            #AF - variant allele frequencies
+            if frequency_field not in entry.FORMAT:
+                entry.FORMAT += [frequency_field]
+            vafs = []
+            for alt in alts:
+                alt = alt.serialize()
+                (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alt, entry.POS)
+                brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
+                if brct is not None:
+                    if var_base not in brct:
+                        print("Warning: variant base {} is not present in the bam-readcount entry for variant {} {}. This might indicate that the bam-readcount file doesn't match the VCF.".format(var_base, chromosome, start))
+                        vafs.append(0)
+                    else:
+                        vafs.append(calculate_vaf(int(brct[var_base]), depth))
                 else:
-                    ads.append(brct[var_base])
-            else:
-                ads.append(0)
-        entry.call_for_sample[sample_name].data[count_field] = ads
+                    vafs.append(0)
+            entry.call_for_sample[sample_name].data[frequency_field] = vafs
+
+            #AD - ref, var1..varN counts
+            if count_field not in entry.FORMAT:
+                entry.FORMAT += [count_field]
+            (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alts[0].serialize(), entry.POS)
+            brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
+            ads = []
+            ads.append(brct[ref_base])
+            for alt in alts:
+                alt = alt.serialize()
+                (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alt, entry.POS)
+                brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
+                if brct is not None:
+                    if var_base not in brct:
+                        print("Warning: variant base {} is not present in the bam-readcount entry for variant {} {}. This might indicate that the bam-readcount file doesn't match the VCF.".format(var_base, chromosome, start))
+                        ads.append(0)
+                    else:
+                        ads.append(brct[var_base])
+                else:
+                    ads.append(0)
+            entry.call_for_sample[sample_name].data[count_field] = ads
 
         #The Number of the AD and AF fields in the input VCF might be 1,
         #but we are now writing R/A number fields now which are is-many
