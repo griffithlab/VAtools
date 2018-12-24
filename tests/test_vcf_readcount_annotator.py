@@ -5,6 +5,7 @@ import py_compile
 from vcf_annotation_tools import vcf_readcount_annotator
 import tempfile
 from filecmp import cmp
+import io
 
 class VcfExpressionEncoderTests(unittest.TestCase):
     @classmethod
@@ -36,18 +37,6 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             ]
             vcf_readcount_annotator.main(command)
         self.assertTrue('does not contain a sample column for sample nonexistent_sample.' in str(context.exception))
-
-    '''
-    def test_error_duplicate_bam_readcount_entries(self):
-        with self.assertRaises(Exception) as context:
-            command = [
-                os.path.join(self.test_data_dir, 'multiple_samples.vcf'),
-                os.path.join(self.test_data_dir, 'duplicate.bam_readcount'),
-                'DNA',
-            ]
-            vcf_readcount_annotator.main(command)
-        self.assertTrue("Duplicate bam-readcount entry for chr 22 pos 16202096 ref C:" in str(context.exception))
-    '''
 
     def test_single_sample_vcf_without_readcounts_annotations_dna_mode(self):
         temp_path = tempfile.TemporaryDirectory()
@@ -159,3 +148,26 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         vcf_readcount_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'hom_ref.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
         temp_path.cleanup()
+    
+    @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
+    def stdout_contains_string(self, vcf_file, readcount_file, expected_output, sample_list, mock_stdout):
+        command = [
+            os.path.join(self.test_data_dir, vcf_file),
+            os.path.join(self.test_data_dir, readcount_file),
+            'DNA'
+        ]
+        if sample_list:
+            command.extend(sample_list)
+        vcf_readcount_annotator.main(command)
+        return expected_output in mock_stdout.getvalue()
+
+    '''
+    def test_duplicate_bam_readcount_entries_same_depth(self):
+        warn_message = "Both depths match, so this field will be written, but count and frequency fields will be skipped."
+        samples = ['-s', 'H_NJ-HCC1395-HCC1395']
+        self.assertTrue( self.stdout_contains_string('multiple_samples.vcf', 'duplicate.bam_readcount', warn_message, samples) )
+    '''
+
+    def test_duplicate_bam_readcount_entries_discrepant_depth(self):
+        warn_message = "Depths are discrepant, so neither entry will be included in the output vcf."
+        self.assertTrue( self.stdout_contains_string('duplicate_entries.vcf', 'duplicate_entries_discrepant_depths.bam_readcount', warn_message, []) )
