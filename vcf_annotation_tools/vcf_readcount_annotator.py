@@ -197,7 +197,7 @@ def main(args_input = sys.argv[1:]):
         depth = brct['depth']
         write_depth(entry, sample_name, depth_field, depth)
 
-        if len(brct) != 1: 
+        if len(brct.keys()) != 1: 
         #if this is 1, then this must have been a duplicate entry where both depths matched- the only field written was depth, frequency and count fields should not be written
 
             #AF - variant allele frequencies
