@@ -63,7 +63,7 @@ def parse_bam_readcount_file(args):
                         coverage[(chromosome, position, reference_base)] = {"depth" : depth}
                         logging.warning("Duplicate bam-readcount entry for chr {} pos {} ref {}. Both depths match, so this field will be written, but count and frequency fields will be skipped. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
                     else:
-                        del coverage[(chromosome, position, reference_base)]
+                        coverage[(chromosome, position, reference_base)] = [prev_brct, parsed_brct]
                         logging.warning("Duplicate bam-readcount entry for chr {} pos {} ref {}. Depths are discrepant, so neither entry will be included in the output vcf. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
                 else:
                     coverage[(chromosome,position,reference_base)] = parsed_brct
@@ -200,6 +200,11 @@ def main(args_input = sys.argv[1:]):
                 entry.FORMAT += [count_field]
             ads = [0] * (len(alts) + 1)
             entry.call_for_sample[sample_name].data[count_field] = ads
+            vcf_writer.write_record(entry)
+            continue
+
+        #Discrepant bam-readcount entries; none of the fields should be written.
+        if isinstance(brct, list):
             vcf_writer.write_record(entry)
             continue
 
