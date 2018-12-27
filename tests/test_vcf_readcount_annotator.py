@@ -151,25 +151,6 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'hom_ref.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
         temp_path.cleanup()
     
-    @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
-    def stdout_contains_string(self, vcf_file, readcount_file, expected_output, sample_list, mock_stdout):
-        command = [
-            os.path.join(self.test_data_dir, vcf_file),
-            os.path.join(self.test_data_dir, readcount_file),
-            'DNA'
-        ]
-        if sample_list:
-            command.extend(sample_list)
-        vcf_readcount_annotator.main(command)
-        return expected_output in mock_stdout.getvalue()
-
-    '''
-    def test_duplicate_bam_readcount_entries_same_depth(self):
-        warn_message = "Both depths match, so this field will be written, but count and frequency fields will be skipped."
-        samples = ['-s', 'H_NJ-HCC1395-HCC1395']
-        self.assertTrue( self.stdout_contains_string('multiple_samples.vcf', 'duplicate.bam_readcount', warn_message, samples) )
-    '''
-
     def test_duplicate_bam_readcount_entries_discrepant_depth(self):
         logging.disable(logging.NOTSET)
         with LogCapture() as l:
@@ -183,4 +164,17 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             logged_str = "".join(l.actual()[0])
             #the warning is broken into several lines when written to the log; manually extract the log, which is returned as 
             #a list of tuples. grab the relevant (and in this case only) tuple, the first, then combine into one string for comparison
+            self.assertTrue(warn_message in logged_str)
+
+    def test_duplicate_bam_readcount_entries_same_depth(self):
+        logging.disable(logging.NOTSET)
+        with LogCapture() as l:
+            command = [
+                os.path.join(self.test_data_dir, 'duplicate_entries.vcf'),
+                os.path.join(self.test_data_dir, 'duplicate_entries_same_depths.bam_readcount'),
+                'DNA', '-s', 'H_NJ-HCC1395-HCC1395'
+            ]
+            vcf_readcount_annotator.main(command)
+            warn_message = "Both depths match, so this field will be written, but count and frequency fields will be skipped."
+            logged_str = "".join(l.actual()[0])
             self.assertTrue(warn_message in logged_str)
