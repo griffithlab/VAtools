@@ -6,6 +6,8 @@ from vcf_annotation_tools import vcf_readcount_annotator
 import tempfile
 from filecmp import cmp
 import io
+import logging
+from testfixtures import LogCapture, StringComparison as S
 
 class VcfExpressionEncoderTests(unittest.TestCase):
     @classmethod
@@ -169,5 +171,16 @@ class VcfExpressionEncoderTests(unittest.TestCase):
     '''
 
     def test_duplicate_bam_readcount_entries_discrepant_depth(self):
-        warn_message = "Depths are discrepant, so neither entry will be included in the output vcf."
-        self.assertTrue( self.stdout_contains_string('duplicate_entries.vcf', 'duplicate_entries_discrepant_depths.bam_readcount', warn_message, []) )
+        logging.disable(logging.NOTSET)
+        with LogCapture() as l:
+            command = [
+                os.path.join(self.test_data_dir, 'duplicate_entries.vcf'),
+                os.path.join(self.test_data_dir, 'duplicate_entries_discrepant_depths.bam_readcount'),
+                'DNA'
+            ]
+            vcf_readcount_annotator.main(command)
+            warn_message = "Depths are discrepant, so neither entry will be included in the output vcf."
+            logged_str = "".join(l.actual()[0])
+            #the warning is broken into several lines when written to the log; manually extract the log, which is returned as 
+            #a list of tuples. grab the relevant (and in this case only) tuple, the first, then combine into one string for comparison
+            self.assertTrue(warn_message in logged_str)

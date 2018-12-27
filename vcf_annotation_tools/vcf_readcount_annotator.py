@@ -6,6 +6,7 @@ import vcfpy
 import tempfile
 import csv
 from collections import OrderedDict
+import logging
 
 def define_parser():
     parser = argparse.ArgumentParser('vcf-readcount-annotator')
@@ -60,10 +61,10 @@ def parse_bam_readcount_file(args):
                     prev_brct = coverage[(chromosome, position, reference_base)]
                     if prev_brct["depth"] == depth:
                         coverage[(chromosome, position, reference_base)] = {"depth" : depth}
-                        print("Warning: Duplicate bam-readcount entry for chr {} pos {} ref {}. Both depths match, so this field will be written, but count and frequency fields will be skipped. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
+                        logging.warning("Duplicate bam-readcount entry for chr {} pos {} ref {}. Both depths match, so this field will be written, but count and frequency fields will be skipped. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
                     else:
                         del coverage[(chromosome, position, reference_base)]
-                        print("Warning: Duplicate bam-readcount entry for chr {} pos {} ref {}. Depths are discrepant, so neither entry will be included in the output vcf. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
+                        logging.warning("Duplicate bam-readcount entry for chr {} pos {} ref {}. Depths are discrepant, so neither entry will be included in the output vcf. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
                 else:
                     coverage[(chromosome,position,reference_base)] = parsed_brct
     return coverage
