@@ -150,12 +150,14 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         vcf_readcount_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'hom_ref.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
         temp_path.cleanup()
-    
+
     def test_duplicate_bam_readcount_entries_discrepant_depth(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'duplicate_entries.vcf'), os.path.join(temp_path.name, 'input.vcf'))
         logging.disable(logging.NOTSET)
         with LogCapture() as l:
             command = [
-                os.path.join(self.test_data_dir, 'duplicate_entries.vcf'),
+                os.path.join(temp_path.name, 'input.vcf'),
                 os.path.join(self.test_data_dir, 'duplicate_entries_discrepant_depths.bam_readcount'),
                 'DNA'
             ]
@@ -165,12 +167,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             #the warning is broken into several lines when written to the log; manually extract the log, which is returned as 
             #a list of tuples. grab the relevant (and in this case only) tuple, the first, then combine into one string for comparison
             self.assertTrue(warn_message in logged_str)
+        temp_path.cleanup()
 
     def test_duplicate_bam_readcount_entries_same_depth(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'duplicate_entries.vcf'), os.path.join(temp_path.name, 'input.vcf'))
         logging.disable(logging.NOTSET)
         with LogCapture() as l:
             command = [
-                os.path.join(self.test_data_dir, 'duplicate_entries.vcf'),
+                os.path.join(temp_path.name, 'input.vcf'),
                 os.path.join(self.test_data_dir, 'duplicate_entries_same_depths.bam_readcount'),
                 'DNA', '-s', 'H_NJ-HCC1395-HCC1395'
             ]
@@ -178,3 +183,4 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             warn_message = "Both depths match, so this field will be written, but count and frequency fields will be skipped."
             logged_str = "".join(l.actual()[0])
             self.assertTrue(warn_message in logged_str)
+        temp_path.cleanup()
