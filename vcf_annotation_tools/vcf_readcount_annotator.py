@@ -6,6 +6,7 @@ import vcfpy
 import tempfile
 import csv
 from collections import OrderedDict
+import logging
 
 def define_parser():
     parser = argparse.ArgumentParser('vcf-readcount-annotator')
@@ -57,8 +58,15 @@ def parse_bam_readcount_file(args):
                 parsed_brct = parse_brct_field(brct)
                 parsed_brct['depth'] = depth
                 if (chromosome, position, reference_base) in coverage and parsed_brct != coverage[(chromosome,position,reference_base)]:
-                    raise Exception("Duplicate bam-readcount entry for chr {} pos {} ref {}:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, coverage[(chromosome,position,reference_base)]))
-                coverage[(chromosome,position,reference_base)] = parsed_brct
+                    prev_brct = coverage[(chromosome, position, reference_base)]
+                    if prev_brct["depth"] == depth:
+                        coverage[(chromosome, position, reference_base)] = {"depth" : depth}
+                        logging.warning("Duplicate bam-readcount entry for chr {} pos {} ref {}. Both depths match, so this field will be written, but count and frequency fields will be skipped. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
+                    else:
+                        coverage[(chromosome, position, reference_base)] = [prev_brct, parsed_brct]
+                        logging.warning("Duplicate bam-readcount entry for chr {} pos {} ref {}. Depths are discrepant, so neither entry will be included in the output vcf. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
+                else:
+                    coverage[(chromosome,position,reference_base)] = parsed_brct
     return coverage
 
 def is_insertion(ref, alt):
@@ -105,8 +113,7 @@ def parse_to_bam_readcount(start, reference, alt, position):
 
 def create_vcf_reader(args):
     vcf_reader = vcfpy.Reader.from_path(args.input_vcf)
-    is_multi_sample = len(vcf_reader.header.samples.names) > 1
-    if is_multi_sample:
+    if len(vcf_reader.header.samples.names) > 1:
         if args.sample_name is None:
             vcf_reader.close()
             raise Exception("ERROR: VCF {} contains more than one sample. Please use the -s option to specify which sample to annotate.".format(args.input_vcf))
@@ -117,7 +124,7 @@ def create_vcf_reader(args):
             sample_name = args.sample_name
     else:
         sample_name = vcf_reader.header.samples.names[0]
-    return vcf_reader, sample_name, is_multi_sample
+    return vcf_reader, sample_name
 
 def create_vcf_writer(args, vcf_reader):
     if args.output_vcf:
@@ -152,7 +159,7 @@ def main(args_input = sys.argv[1:]):
     args = parser.parse_args(args_input)
 
     read_counts = parse_bam_readcount_file(args)
-    (vcf_reader, sample_name, is_multi_sample) = create_vcf_reader(args)
+    (vcf_reader, sample_name) = create_vcf_reader(args)
     vcf_writer = create_vcf_writer(args, vcf_reader)
 
     if args.data_type == 'DNA':
@@ -171,6 +178,16 @@ def main(args_input = sys.argv[1:]):
         reference  = entry.REF
         alts       = entry.ALT
 
+        #The NUMBER of the AD and AF fields in the input VCF might be 1,
+        #but we are now writing R/A number fields which are is-many
+        #In that case the values of these fields need to be changed
+        #from a single number to an array or else the writer will throw an error
+        for sample in vcf_reader.header.samples.names:
+            sample_data = entry.call_for_sample[sample].data
+            for field in [count_field, frequency_field]:
+                if field in sample_data and (not isinstance(sample_data[field], list)):
+                    sample_data[field] = [sample_data[field]]
+
         (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alts[0].serialize(), entry.POS)
         brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
         if brct is None:
@@ -186,9 +203,24 @@ def main(args_input = sys.argv[1:]):
             vcf_writer.write_record(entry)
             continue
 
+        #Discrepant bam-readcount entries; none of the fields should be written.
+        if isinstance(brct, list):
+            vcf_writer.write_record(entry)
+            continue
+
+        if 'depth' not in brct:
+            raise Exception("Error: Malformed bam-readcount output for chromosome {} reference {} position {}. Missing depth field: {}".format(chromosome, reference, start, brct))
+
         #DP - read depth
         depth = brct['depth']
         write_depth(entry, sample_name, depth_field, depth)
+
+        #If `depth` is the only key in this hash, then this must have
+        #been a duplicate bam-readcoutn entry where only the depths matched.
+        #The only field to write is depth; frequency and count fields should not be written.
+        if len(brct.keys()) == 1 and list(brct.keys())[0] == 'depth':
+            vcf_writer.write_record(entry)
+            continue
 
         #AF - variant allele frequencies
         if frequency_field not in entry.FORMAT:
@@ -228,20 +260,6 @@ def main(args_input = sys.argv[1:]):
             else:
                 ads.append(0)
         entry.call_for_sample[sample_name].data[count_field] = ads
-
-        #The Number of the AD and AF fields in the input VCF might be 1,
-        #but we are now writing R/A number fields now which are is-many
-        #If this is an multi-sample VCF the parsed entries of the other
-        #samples need to be changed from a single number to an array or
-        #else the writer will throw an error
-        if is_multi_sample:
-            other_samples = vcf_reader.header.samples.names.copy()
-            other_samples.remove(sample_name)
-            for sample in other_samples:
-                sample_data = entry.call_for_sample[sample].data
-                for field in [count_field, frequency_field]:
-                    if field in sample_data and (not isinstance(sample_data[field], list)):
-                        sample_data[field] = [sample_data[field]]
 
         vcf_writer.write_record(entry)
 

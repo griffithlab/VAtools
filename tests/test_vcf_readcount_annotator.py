@@ -5,6 +5,9 @@ import py_compile
 from vcf_annotation_tools import vcf_readcount_annotator
 import tempfile
 from filecmp import cmp
+import io
+import logging
+from testfixtures import LogCapture, StringComparison as S
 
 class VcfExpressionEncoderTests(unittest.TestCase):
     @classmethod
@@ -36,16 +39,6 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             ]
             vcf_readcount_annotator.main(command)
         self.assertTrue('does not contain a sample column for sample nonexistent_sample.' in str(context.exception))
-
-    def test_error_duplicate_bam_readcount_entries(self):
-        with self.assertRaises(Exception) as context:
-            command = [
-                os.path.join(self.test_data_dir, 'multiple_samples.vcf'),
-                os.path.join(self.test_data_dir, 'duplicate.bam_readcount'),
-                'DNA',
-            ]
-            vcf_readcount_annotator.main(command)
-        self.assertTrue("Duplicate bam-readcount entry for chr 22 pos 16202096 ref C:" in str(context.exception))
 
     def test_single_sample_vcf_without_readcounts_annotations_dna_mode(self):
         temp_path = tempfile.TemporaryDirectory()
@@ -156,4 +149,42 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         ]
         vcf_readcount_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'hom_ref.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        temp_path.cleanup()
+
+    def test_duplicate_bam_readcount_entries_discrepant_depth(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'duplicate_entries.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        logging.disable(logging.NOTSET)
+        with LogCapture() as l:
+            command = [
+                os.path.join(temp_path.name, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'duplicate_entries_discrepant_depths.bam_readcount'),
+                'DNA'
+            ]
+            vcf_readcount_annotator.main(command)
+            warn_message = "Depths are discrepant, so neither entry will be included in the output vcf."
+            logged_str = "".join(l.actual()[0])
+            #the warning is broken into several lines when written to the log; manually extract the log, which is returned as 
+            #a list of tuples. grab the relevant (and in this case only) tuple, the first, then combine into one string for comparison
+            self.assertTrue(warn_message in logged_str)
+
+            self.assertTrue(cmp(os.path.join(self.test_data_dir, 'duplicate_entries_discrepant_depths.bam_readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        temp_path.cleanup()
+
+    def test_duplicate_bam_readcount_entries_same_depth(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'duplicate_entries.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        logging.disable(logging.NOTSET)
+        with LogCapture() as l:
+            command = [
+                os.path.join(temp_path.name, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'duplicate_entries_same_depths.bam_readcount'),
+                'DNA', '-s', 'H_NJ-HCC1395-HCC1395'
+            ]
+            vcf_readcount_annotator.main(command)
+            warn_message = "Both depths match, so this field will be written, but count and frequency fields will be skipped."
+            logged_str = "".join(l.actual()[0])
+            self.assertTrue(warn_message in logged_str)
+
+            self.assertTrue(cmp(os.path.join(self.test_data_dir, 'duplicate_entries_same_depths.bam_readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
         temp_path.cleanup()
