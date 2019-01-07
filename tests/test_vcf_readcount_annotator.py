@@ -188,3 +188,31 @@ class VcfExpressionEncoderTests(unittest.TestCase):
 
             self.assertTrue(cmp(os.path.join(self.test_data_dir, 'duplicate_entries_same_depths.bam_readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
         temp_path.cleanup()
+
+    def test_snv_mode(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.snvs_and_indels.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'snvs.bam_readcount'),
+            'DNA',
+            '--variant-type', 'snv',
+        ]
+        vcf_readcount_annotator.main(command)
+
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'snv_mode.bam_readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        temp_path.cleanup()
+
+    def test_indel_mode(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.snvs_and_indels.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'indels.bam_readcount'),
+            'DNA',
+            '--variant-type', 'indel',
+        ]
+        vcf_readcount_annotator.main(command)
+
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'indel_mode.bam_readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        temp_path.cleanup()
