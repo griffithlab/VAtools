@@ -17,7 +17,6 @@ def define_parser():
     parser.add_argument(
         "bam_readcount_file",
         help="A bam-readcount output file",
-        nargs='+',
     )
     parser.add_argument(
         "data_type",
@@ -52,27 +51,26 @@ def parse_brct_field(brcts):
 
 def parse_bam_readcount_file(args):
     coverage = {}
-    for bam_readcount_file in args.bam_readcount_file:
-        with open(bam_readcount_file, 'r') as reader:
-            coverage_tsv_reader = csv.reader(reader, delimiter='\t')
-            for row in coverage_tsv_reader:
-                chromosome     = row[0]
-                position       = row[1]
-                reference_base = row[2].upper()
-                depth          = row[3]
-                brct           = row[4:]
-                parsed_brct = parse_brct_field(brct)
-                parsed_brct['depth'] = depth
-                if (chromosome, position, reference_base) in coverage and parsed_brct != coverage[(chromosome,position,reference_base)]:
-                    prev_brct = coverage[(chromosome, position, reference_base)]
-                    if prev_brct["depth"] == depth:
-                        coverage[(chromosome, position, reference_base)] = {"depth" : depth}
-                        logging.warning("Duplicate bam-readcount entry for chr {} pos {} ref {}. Both depths match, so this field will be written, but count and frequency fields will be skipped. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
-                    else:
-                        coverage[(chromosome, position, reference_base)] = [prev_brct, parsed_brct]
-                        logging.warning("Duplicate bam-readcount entry for chr {} pos {} ref {}. Depths are discrepant, so neither entry will be included in the output vcf. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
+    with open(args.bam_readcount_file, 'r') as reader:
+        coverage_tsv_reader = csv.reader(reader, delimiter='\t')
+        for row in coverage_tsv_reader:
+            chromosome     = row[0]
+            position       = row[1]
+            reference_base = row[2].upper()
+            depth          = row[3]
+            brct           = row[4:]
+            parsed_brct = parse_brct_field(brct)
+            parsed_brct['depth'] = depth
+            if (chromosome, position, reference_base) in coverage and parsed_brct != coverage[(chromosome,position,reference_base)]:
+                prev_brct = coverage[(chromosome, position, reference_base)]
+                if prev_brct["depth"] == depth:
+                    coverage[(chromosome, position, reference_base)] = {"depth" : depth}
+                    logging.warning("Duplicate bam-readcount entry for chr {} pos {} ref {}. Both depths match, so this field will be written, but count and frequency fields will be skipped. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
                 else:
-                    coverage[(chromosome,position,reference_base)] = parsed_brct
+                    coverage[(chromosome, position, reference_base)] = [prev_brct, parsed_brct]
+                    logging.warning("Duplicate bam-readcount entry for chr {} pos {} ref {}. Depths are discrepant, so neither entry will be included in the output vcf. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
+            else:
+                coverage[(chromosome,position,reference_base)] = parsed_brct
     return coverage
 
 def has_snv(entry):

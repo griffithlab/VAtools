@@ -114,19 +114,6 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multiple_samples_second_alt.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
         temp_path.cleanup()
 
-    def test_multiple_bam_readcount_files(self):
-        temp_path = tempfile.TemporaryDirectory()
-        os.symlink(os.path.join(self.test_data_dir, 'input.snvs_and_indels.vcf'), os.path.join(temp_path.name, 'input.vcf'))
-        command = [
-            os.path.join(temp_path.name, 'input.vcf'),
-            os.path.join(self.test_data_dir, 'snvs.bam_readcount'),
-            os.path.join(self.test_data_dir, 'indels.bam_readcount'),
-            'DNA',
-        ]
-        vcf_readcount_annotator.main(command)
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multiple_bam_readcount_files.zero.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
-        temp_path.cleanup()
-
     def test_input_AF_is_of_number_1(self):
         temp_path = tempfile.TemporaryDirectory()
         os.symlink(os.path.join(self.test_data_dir, 'af_number_1.vcf'), os.path.join(temp_path.name, 'input.vcf'))
