@@ -1,4 +1,4 @@
-# VCF Annotation Tools (VAT)
+# VCF Annotation Tools (VAtools)
 
 VCF Annotation Tools is a python package that includes several tools to annotate VCF files with data from other tools.
 
