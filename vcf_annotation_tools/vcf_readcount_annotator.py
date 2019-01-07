@@ -17,7 +17,6 @@ def define_parser():
     parser.add_argument(
         "bam_readcount_file",
         help="A bam-readcount output file",
-        nargs='+',
     )
     parser.add_argument(
         "data_type",
@@ -35,6 +34,12 @@ def define_parser():
         help="Path to write the output VCF file. If not provided, the output VCF file will be "
             +"written next to the input VCF file with a .readcount.vcf file ending."
     )
+    parser.add_argument(
+        "-t", "--variant-type",
+        help="The type of variant to process. `snv` will only annotate SNVs. `indel` will only annotate InDels. `all` will annotate all variant types. `snv` and `indel` mode currently do not support multi-allelic VCF entries that contain both SNVs and InDels. It is recommended to split multi-allelic sites before running in `snv` or `indel` mode.",
+        choices=['snv', 'indel', 'all'],
+        default='all'
+    )
     return parser
 
 def parse_brct_field(brcts):
@@ -46,28 +51,43 @@ def parse_brct_field(brcts):
 
 def parse_bam_readcount_file(args):
     coverage = {}
-    for bam_readcount_file in args.bam_readcount_file:
-        with open(bam_readcount_file, 'r') as reader:
-            coverage_tsv_reader = csv.reader(reader, delimiter='\t')
-            for row in coverage_tsv_reader:
-                chromosome     = row[0]
-                position       = row[1]
-                reference_base = row[2].upper()
-                depth          = row[3]
-                brct           = row[4:]
-                parsed_brct = parse_brct_field(brct)
-                parsed_brct['depth'] = depth
-                if (chromosome, position, reference_base) in coverage and parsed_brct != coverage[(chromosome,position,reference_base)]:
-                    prev_brct = coverage[(chromosome, position, reference_base)]
-                    if prev_brct["depth"] == depth:
-                        coverage[(chromosome, position, reference_base)] = {"depth" : depth}
-                        logging.warning("Duplicate bam-readcount entry for chr {} pos {} ref {}. Both depths match, so this field will be written, but count and frequency fields will be skipped. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
-                    else:
-                        coverage[(chromosome, position, reference_base)] = [prev_brct, parsed_brct]
-                        logging.warning("Duplicate bam-readcount entry for chr {} pos {} ref {}. Depths are discrepant, so neither entry will be included in the output vcf. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
+    with open(args.bam_readcount_file, 'r') as reader:
+        coverage_tsv_reader = csv.reader(reader, delimiter='\t')
+        for row in coverage_tsv_reader:
+            chromosome     = row[0]
+            position       = row[1]
+            reference_base = row[2].upper()
+            depth          = row[3]
+            brct           = row[4:]
+            parsed_brct = parse_brct_field(brct)
+            parsed_brct['depth'] = depth
+            if (chromosome, position, reference_base) in coverage and parsed_brct != coverage[(chromosome,position,reference_base)]:
+                prev_brct = coverage[(chromosome, position, reference_base)]
+                if prev_brct["depth"] == depth:
+                    coverage[(chromosome, position, reference_base)] = {"depth" : depth}
+                    logging.warning("Duplicate bam-readcount entry for chr {} pos {} ref {}. Both depths match, so this field will be written, but count and frequency fields will be skipped. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
                 else:
-                    coverage[(chromosome,position,reference_base)] = parsed_brct
+                    coverage[(chromosome, position, reference_base)] = [prev_brct, parsed_brct]
+                    logging.warning("Duplicate bam-readcount entry for chr {} pos {} ref {}. Depths are discrepant, so neither entry will be included in the output vcf. Offending entries:\n{}\n{}".format(chromosome, position, reference_base, parsed_brct, prev_brct))
+            else:
+                coverage[(chromosome,position,reference_base)] = parsed_brct
     return coverage
+
+def has_snv(entry):
+    for alt in entry.ALT:
+        alt = alt.serialize()
+        ref = entry.REF
+        if len(ref) == len(alt):
+            return True
+    return False
+
+def has_indel(entry):
+    for alt in entry.ALT:
+        alt = alt.serialize()
+        ref = entry.REF
+        if len(ref) != len(alt):
+            return True
+    return False
 
 def is_insertion(ref, alt):
     return len(alt) > len(ref)
@@ -187,6 +207,20 @@ def main(args_input = sys.argv[1:]):
             for field in [count_field, frequency_field]:
                 if field in sample_data and (not isinstance(sample_data[field], list)):
                     sample_data[field] = [sample_data[field]]
+
+        #If we limit the annotations to only SNVs and the entry contains an InDel, skip it
+        if args.variant_type == 'snv' and has_indel(entry):
+            if has_snv(entry):
+                logging.warning("Running in `snv` variant type mode but VCF entry for chr {} pos {} ref {} alts {} contains both SNVs and InDels. Skipping.".format(chromsome, entry.POS, reference, alts))
+            vcf_writer.write_record(entry)
+            continue
+
+        #If we limit the annotations to only InDels and the entry contains a SNV, skip it
+        if args.variant_type == 'indel' and has_snv(entry):
+            if has_indel(entry):
+                logging.warning("Running in `indel` variant type mode but VCF entry for chr {} pos {} ref {} alts {} contains both SNVs and InDels. Skipping.".format(chromsome, entry.POS, reference, alts))
+            vcf_writer.write_record(entry)
+            continue
 
         (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alts[0].serialize(), entry.POS)
         brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
