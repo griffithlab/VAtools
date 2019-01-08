@@ -100,14 +100,9 @@ def decode_hex(string):
     hex_string = string.group(0).replace('%', '')
     return binascii.unhexlify(hex_string).decode('utf-8')
 
-def main(args_input = sys.argv[1:]):
-    parser = define_parser()
-    args = parser.parse_args(args_input)
-
+def extract_vep_fields(args):
     vcf_reader = create_vcf_reader(args)
-
     csq_fields = parse_csq_header(vcf_reader)
-
     vep = {}
     for variant in vcf_reader:
         chr = str(variant.CHROM)
@@ -141,7 +136,13 @@ def main(args_input = sys.argv[1:]):
                     vep[chr][pos][ref][alt] = None
             else:
                 sys.exit("VEP entry for at CHR %s, POS %s, REF %s , ALT % already exists" % (chr, pos, ref, alt) )
+    return vep
 
+def main(args_input = sys.argv[1:]):
+    parser = define_parser()
+    args = parser.parse_args(args_input)
+
+    vep = extract_vep_fields(args)
 
     with open(args.input_tsv, 'r') as input_filehandle:
         tsv_reader = create_tsv_reader(input_filehandle)
