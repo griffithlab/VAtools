@@ -38,6 +38,13 @@ def create_vcf_reader(args):
         raise Exception("ERROR: VCF {} is not VEP-annotated. Please annotate the VCF with VEP before running this tool.".format(args.input_vcf))
     return vcf_reader
 
+def create_tsv_reader(input_filehandle):
+    tsv_reader = csv.DictReader(input_filehandle, delimiter = "\t")
+    for field in ['CHROM', 'POS', 'REF', 'ALT']:
+        if field not in tsv_reader.fieldnames:
+            raise Exception("ERROR: Input TSV {} doesn't contain required column '{}'.".format(input_filehandle.name, field))
+    return tsv_reader
+
 def parse_csq_header(vcf_reader):
     format_pattern = re.compile('Format: (.*)')
     return format_pattern.search(vcf_reader.header.get_info_field_info('CSQ').description).group(1).split('|')
@@ -137,16 +144,16 @@ def main(args_input = sys.argv[1:]):
 
 
     with open(args.input_tsv, 'r') as input_filehandle:
-        reader = csv.DictReader(input_filehandle, delimiter = "\t")
+        tsv_reader = create_tsv_reader(input_filehandle)
         if args.output_tsv:
             output_file = args.output_tsv
         else:
             (head, sep, tail) = args.input_vcf.rpartition('.vcf')
             output_file = "{}.tsv".format(head)
         output_filehandle = open(output_file, 'w')
-        writer = csv.DictWriter(output_filehandle, fieldnames = reader.fieldnames + args.vep_fields, delimiter = "\t")
+        writer = csv.DictWriter(output_filehandle, fieldnames = tsv_reader.fieldnames + args.vep_fields, delimiter = "\t")
         writer.writeheader()
-        for entry in reader:
+        for entry in tsv_reader:
             row = entry
             for field in args.vep_fields:
                 field_annotations = []

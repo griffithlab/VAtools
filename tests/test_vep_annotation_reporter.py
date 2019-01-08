@@ -28,3 +28,13 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             ]
             vep_annotation_reporter.main(command)
         self.assertTrue('is not VEP-annotated. Please annotate the VCF with VEP before running this tool.' in str(context.exception))
+
+    def test_error_missing_column_in_tsv(self):
+        with self.assertRaises(Exception) as context:
+            command = [
+                os.path.join(self.test_data_dir, 'variants.no_ALT.tsv'),
+                os.path.join(self.test_data_dir, 'input.vcf.gz'),
+                'Consequence',
+            ]
+            vep_annotation_reporter.main(command)
+        self.assertTrue("doesn't contain required column 'ALT'." in str(context.exception))
