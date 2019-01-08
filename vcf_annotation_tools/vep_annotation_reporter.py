@@ -4,7 +4,7 @@ import sys
 import os
 import argparse
 import re
-from cyvcf2 import VCF
+import vcfpy
 import tempfile
 import csv
 import binascii
@@ -31,13 +31,9 @@ def define_parser():
     )
     return parser
 
-def parse_csq_header(vcf_file):
-    for header in vcf_file.header_iter():
-        info = header.info(extra=True)
-        if b'ID' in info.keys() and info[b'ID'] == b'CSQ':
-            format_pattern = re.compile('Format: (.*)"')
-            match = format_pattern.search(info[b'Description'].decode())
-            return match.group(1).split('|')
+def parse_csq_header(vcf_reader):
+    format_pattern = re.compile('Format: (.*)')
+    return format_pattern.search(vcf_reader.header.get_info_field_info('CSQ').description).group(1).split('|')
 
 def parse_csq_entries(csq_entries, csq_fields):
     transcripts = {}
@@ -51,20 +47,14 @@ def parse_csq_entries(csq_entries, csq_fields):
         transcripts[transcript['Allele']].append(transcript)
     return transcripts
 
+def is_sv(entry):
+    return 'SVTYPE' in entry.INFO
+
 def resolve_alleles(entry, csq_alleles):
     alleles = {}
-    if entry.is_indel:
+    if is_sv(entry):
         for alt in entry.ALT:
-            alt = str(alt)
-            if alt[0:1] != entry.REF[0:1]:
-                csq_allele = alt
-            elif alt[1:] == "":
-                csq_allele = '-'
-            else:
-                csq_allele = alt[1:]
-            alleles[alt] = csq_allele
-    elif entry.is_sv:
-        for alt in alts:
+            alt = alt.serialize()
             if len(alt) > len(entry.REF) and 'insertion' in csq_alleles:
                 alleles[alt] = 'insertion'
             elif len(alt) < len(entry.REF) and 'deletion' in csq_alleles:
@@ -73,8 +63,17 @@ def resolve_alleles(entry, csq_alleles):
                 alleles[alt] = list(csq_alleles)[0]
     else:
         for alt in entry.ALT:
-            alt = str(alt)
-            alleles[alt] = alt
+            alt = alt.serialize()
+            if len(alt) != len(entry.REF):
+                if alt[0:1] != entry.REF[0:1]:
+                    csq_allele = alt
+                elif alt[1:] == "":
+                    csq_allele = '-'
+                else:
+                    csq_allele = alt[1:]
+                alleles[alt] = csq_allele
+            else:
+                alleles[alt] = alt
     return alleles
 
 def transcript_for_alt(transcripts, alt):
@@ -91,12 +90,12 @@ def main(args_input = sys.argv[1:]):
     parser = define_parser()
     args = parser.parse_args(args_input)
 
-    vcf_file = VCF(args.input_vcf)
+    vcf_reader = vcfpy.Reader.from_path(args.input_vcf)
 
-    csq_fields = parse_csq_header(vcf_file)
+    csq_fields = parse_csq_header(vcf_reader)
 
     vep = {}
-    for variant in vcf_file:
+    for variant in vcf_reader:
         chr = str(variant.CHROM)
         pos = str(variant.POS)
         ref = str(variant.REF)
@@ -111,15 +110,16 @@ def main(args_input = sys.argv[1:]):
         if ref not in vep[chr][pos]:
             vep[chr][pos][ref] = {}
 
-        csq = variant.INFO.get('CSQ')
-        if csq is not None:
-            transcripts = parse_csq_entries(csq.split(','), csq_fields)
-        else:
+        if 'CSQ' not in variant.INFO:
             for alt in alts:
-                vep[chr][pos][ref][alt] = None
+                vep[chr][pos][ref][alt.serialize()] = None
             continue
+        else:
+            transcripts = parse_csq_entries(variant.INFO['CSQ'], csq_fields)
+
         alleles_dict = resolve_alleles(variant, transcripts.keys())
         for alt in alts:
+            alt = alt.serialize()
             if alt not in vep[chr][pos][ref]:
                 if alleles_dict[alt] in transcripts:
                     vep[chr][pos][ref][alt] = transcript_for_alt(transcripts, alleles_dict[alt])
