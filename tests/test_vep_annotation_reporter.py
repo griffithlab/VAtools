@@ -18,3 +18,13 @@ class VcfExpressionEncoderTests(unittest.TestCase):
 
     def test_source_compiles(self):
         self.assertTrue(py_compile.compile(self.executable))
+
+    def test_error_no_vep_annotation(self):
+        with self.assertRaises(Exception) as context:
+            command = [
+                os.path.join(self.test_data_dir, 'variants.tsv'),
+                os.path.join(self.test_data_dir, '..', 'no_csq.vcf'),
+                'Consequence',
+            ]
+            vep_annotation_reporter.main(command)
+        self.assertTrue('is not VEP-annotated. Please annotate the VCF with VEP before running this tool.' in str(context.exception))

@@ -31,6 +31,13 @@ def define_parser():
     )
     return parser
 
+def create_vcf_reader(args):
+    vcf_reader = vcfpy.Reader.from_path(args.input_vcf)
+    if 'CSQ' not in vcf_reader.header.info_ids():
+        vcf_reader.close()
+        raise Exception("ERROR: VCF {} is not VEP-annotated. Please annotate the VCF with VEP before running this tool.".format(args.input_vcf))
+    return vcf_reader
+
 def parse_csq_header(vcf_reader):
     format_pattern = re.compile('Format: (.*)')
     return format_pattern.search(vcf_reader.header.get_info_field_info('CSQ').description).group(1).split('|')
@@ -90,7 +97,7 @@ def main(args_input = sys.argv[1:]):
     parser = define_parser()
     args = parser.parse_args(args_input)
 
-    vcf_reader = vcfpy.Reader.from_path(args.input_vcf)
+    vcf_reader = create_vcf_reader(args)
 
     csq_fields = parse_csq_header(vcf_reader)
 
