@@ -25,8 +25,9 @@ def define_parser():
         nargs='+',
     )
     parser.add_argument(
-        "output_dir",
-        help="The output directory to write the output report to."
+        "-o", "--output-tsv",
+        help="Path to write the output report TSV file. If not provided, the output TSV will be written "
+            +"next to the input VCF with a .tsv file ending."
     )
     return parser
 
@@ -130,7 +131,12 @@ def main(args_input = sys.argv[1:]):
 
     with open(args.input_tsv, 'r') as input_filehandle:
         reader = csv.DictReader(input_filehandle, delimiter = "\t")
-        output_filehandle = open(os.path.join(args.output_dir, 'variants.annotated.tsv'), 'w')
+        if args.output_tsv:
+            output_file = args.output_tsv
+        else:
+            (head, sep, tail) = args.input_vcf.rpartition('.vcf')
+            output_file = "{}.tsv".format(head)
+        output_filehandle = open(output_file, 'w')
         writer = csv.DictWriter(output_filehandle, fieldnames = reader.fieldnames + args.vep_fields, delimiter = "\t")
         writer.writeheader()
         for entry in reader:
