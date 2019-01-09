@@ -1,0 +1,4 @@
+CHROM	POS	REF	ALT	Consequence
+chr17	7663110	G	A	intron_variant
+chr17	7663126	GTATATATATAATATATATAATATAATATAA	G	-
+chr17	7663661	A	G	downstream_gene_variant
