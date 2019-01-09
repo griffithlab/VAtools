@@ -50,3 +50,16 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         vep_annotation_reporter.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.single_field.tsv'), os.path.join(temp_path.name, 'input.tsv')))
         temp_path.cleanup()
+
+    def test_multiple_vep_fields(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
+        command = [
+            os.path.join(self.test_data_dir, 'variants.tsv'),
+            os.path.join(temp_path.name, 'input.vcf.gz'),
+            'Consequence',
+            'Gene',
+        ]
+        vep_annotation_reporter.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.multiple_fields.tsv'), os.path.join(temp_path.name, 'input.tsv')))
+        temp_path.cleanup()
