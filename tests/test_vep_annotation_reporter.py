@@ -38,3 +38,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             ]
             vep_annotation_reporter.main(command)
         self.assertTrue("doesn't contain required column 'ALT'." in str(context.exception))
+
+    def test_single_vep_field(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
+        command = [
+            os.path.join(self.test_data_dir, 'variants.tsv'),
+            os.path.join(temp_path.name, 'input.vcf.gz'),
+            'Consequence',
+        ]
+        vep_annotation_reporter.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.single_field.tsv'), os.path.join(temp_path.name, 'input.tsv')))
+        temp_path.cleanup()
