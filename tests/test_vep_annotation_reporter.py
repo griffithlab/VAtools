@@ -63,3 +63,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         vep_annotation_reporter.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.multiple_fields.tsv'), os.path.join(temp_path.name, 'input.tsv')))
         temp_path.cleanup()
+
+    def test_multiple_multiallelic_site(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.multiallelic.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
+        command = [
+            os.path.join(self.test_data_dir, 'variants.multiallelic.tsv'),
+            os.path.join(temp_path.name, 'input.vcf.gz'),
+            'Consequence',
+        ]
+        vep_annotation_reporter.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.multiallelic.tsv'), os.path.join(temp_path.name, 'input.tsv')))
+        temp_path.cleanup()
