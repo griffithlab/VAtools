@@ -12,10 +12,6 @@ import binascii
 def define_parser():
     parser = argparse.ArgumentParser('vep-annotation-reporter')
     parser.add_argument(
-        "input_tsv",
-        help="The TSV report file to add VEP annotations to. Required columns are CHROM, POS, REF, ALT. Must be tab-delimited."
-    )
-    parser.add_argument(
         "input_vcf",
         help="The VCF file with VEP annotations to report."
     )
@@ -23,6 +19,10 @@ def define_parser():
         "vep_fields",
         help="The VEP fields to report.",
         nargs='+',
+    )
+    parser.add_argument(
+        "-t", "--input_tsv",
+        help="A TSV report file to add VEP annotations to. Required columns are CHROM, POS, REF, ALT. These are used to match each TSV entry to a VCF entry. Must be tab-delimited."
     )
     parser.add_argument(
         "-o", "--output-tsv",
@@ -136,7 +136,22 @@ def extract_vep_fields(args):
                     vep[chr][pos][ref][alt] = None
             else:
                 sys.exit("VEP entry for at CHR %s, POS %s, REF %s , ALT % already exists" % (chr, pos, ref, alt) )
+    vcf_reader.close()
     return vep
+
+def add_vep_fields_to_row(args, row, vep):
+    for field in args.vep_fields:
+        field_annotations = []
+        for alt in row['ALT'].split(','):
+            vep_annotations = vep[row['CHROM']][row['POS']][row['REF']][alt]
+            if vep_annotations is not None and field in vep_annotations:
+                annotation = vep_annotations[field]
+                decoded_annotation = re.sub(r'%[0-9|A-F][0-9|A-F]', decode_hex, annotation)
+                field_annotations.append(decoded_annotation)
+            else:
+                field_annotations.append('-')
+        row[field] = ','.join(field_annotations)
+    return row
 
 def main(args_input = sys.argv[1:]):
     parser = define_parser()
@@ -144,31 +159,37 @@ def main(args_input = sys.argv[1:]):
 
     vep = extract_vep_fields(args)
 
-    with open(args.input_tsv, 'r') as input_filehandle:
-        tsv_reader = create_tsv_reader(input_filehandle)
-        if args.output_tsv:
-            output_file = args.output_tsv
-        else:
-            (head, sep, tail) = args.input_vcf.rpartition('.vcf')
-            output_file = "{}.tsv".format(head)
-        output_filehandle = open(output_file, 'w')
-        writer = csv.DictWriter(output_filehandle, fieldnames = tsv_reader.fieldnames + args.vep_fields, delimiter = "\t")
-        writer.writeheader()
-        for entry in tsv_reader:
-            row = entry
-            for field in args.vep_fields:
-                field_annotations = []
-                for alt in entry['ALT'].split(','):
-                    vep_annotations = vep[entry['CHROM']][entry['POS']][entry['REF']][alt]
-                    if vep_annotations is not None and field in vep_annotations:
-                        annotation = vep_annotations[field]
-                        decoded_annotation = re.sub(r'%[0-9|A-F][0-9|A-F]', decode_hex, annotation)
-                        field_annotations.append(decoded_annotation)
-                    else:
-                        field_annotations.append('-')
-                row[field] = ','.join(field_annotations)
-            writer.writerow(row)
-        output_filehandle.close()
+    if args.output_tsv:
+        output_file = args.output_tsv
+    else:
+        (head, sep, tail) = args.input_vcf.rpartition('.vcf')
+        output_file = "{}.tsv".format(head)
+
+    if args.input_tsv:
+        with open(args.input_tsv, 'r') as input_filehandle:
+            tsv_reader = create_tsv_reader(input_filehandle)
+            output_filehandle = open(output_file, 'w')
+            writer = csv.DictWriter(output_filehandle, fieldnames = tsv_reader.fieldnames + args.vep_fields, delimiter = "\t")
+            writer.writeheader()
+            for entry in tsv_reader:
+                row = entry
+                row = add_vep_fields_to_row(args, row, vep)
+                writer.writerow(row)
+            output_filehandle.close()
+    else:
+        vcf_reader = create_vcf_reader(args)
+        with open(output_file, 'w') as output_filehandle:
+            writer = csv.DictWriter(output_filehandle, fieldnames = ['CHROM', 'POS', 'REF', 'ALT'] + args.vep_fields, delimiter = "\t")
+            writer.writeheader()
+            for variant in vcf_reader:
+                row = {
+                    'CHROM': str(variant.CHROM),
+                    'POS'  : str(variant.POS),
+                    'REF'  : variant.REF,
+                    'ALT'  : ','.join(map(lambda a: a.serialize(), variant.ALT)),
+                }
+                row = add_vep_fields_to_row(args, row, vep)
+                writer.writerow(row)
 
 if __name__ == '__main__':
     main()

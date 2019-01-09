@@ -22,9 +22,9 @@ class VcfExpressionEncoderTests(unittest.TestCase):
     def test_error_no_vep_annotation(self):
         with self.assertRaises(Exception) as context:
             command = [
-                os.path.join(self.test_data_dir, 'variants.tsv'),
                 os.path.join(self.test_data_dir, '..', 'no_csq.vcf'),
                 'Consequence',
+                '-t', os.path.join(self.test_data_dir, 'variants.tsv'),
             ]
             vep_annotation_reporter.main(command)
         self.assertTrue('is not VEP-annotated. Please annotate the VCF with VEP before running this tool.' in str(context.exception))
@@ -32,9 +32,9 @@ class VcfExpressionEncoderTests(unittest.TestCase):
     def test_error_missing_column_in_tsv(self):
         with self.assertRaises(Exception) as context:
             command = [
-                os.path.join(self.test_data_dir, 'variants.no_ALT.tsv'),
                 os.path.join(self.test_data_dir, 'input.vcf.gz'),
                 'Consequence',
+                '-t', os.path.join(self.test_data_dir, 'variants.no_ALT.tsv'),
             ]
             vep_annotation_reporter.main(command)
         self.assertTrue("doesn't contain required column 'ALT'." in str(context.exception))
@@ -43,9 +43,9 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         temp_path = tempfile.TemporaryDirectory()
         os.symlink(os.path.join(self.test_data_dir, 'input.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
         command = [
-            os.path.join(self.test_data_dir, 'variants.tsv'),
             os.path.join(temp_path.name, 'input.vcf.gz'),
             'Consequence',
+            '-t', os.path.join(self.test_data_dir, 'variants.tsv'),
         ]
         vep_annotation_reporter.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.single_field.tsv'), os.path.join(temp_path.name, 'input.tsv')))
@@ -55,10 +55,10 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         temp_path = tempfile.TemporaryDirectory()
         os.symlink(os.path.join(self.test_data_dir, 'input.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
         command = [
-            os.path.join(self.test_data_dir, 'variants.tsv'),
             os.path.join(temp_path.name, 'input.vcf.gz'),
             'Consequence',
             'Gene',
+            '-t', os.path.join(self.test_data_dir, 'variants.tsv'),
         ]
         vep_annotation_reporter.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.multiple_fields.tsv'), os.path.join(temp_path.name, 'input.tsv')))
@@ -68,10 +68,21 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         temp_path = tempfile.TemporaryDirectory()
         os.symlink(os.path.join(self.test_data_dir, 'input.multiallelic.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
         command = [
-            os.path.join(self.test_data_dir, 'variants.multiallelic.tsv'),
+            os.path.join(temp_path.name, 'input.vcf.gz'),
+            'Consequence',
+            '-t', os.path.join(self.test_data_dir, 'variants.multiallelic.tsv'),
+        ]
+        vep_annotation_reporter.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.multiallelic.tsv'), os.path.join(temp_path.name, 'input.tsv')))
+        temp_path.cleanup()
+
+    def test_no_input_tsv(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
+        command = [
             os.path.join(temp_path.name, 'input.vcf.gz'),
             'Consequence',
         ]
         vep_annotation_reporter.main(command)
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.multiallelic.tsv'), os.path.join(temp_path.name, 'input.tsv')))
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.no_input_tsv.tsv'), os.path.join(temp_path.name, 'input.tsv')))
         temp_path.cleanup()
