@@ -50,3 +50,9 @@ want to consider upgrading to the latest version:
 .. code-block:: none
 
    pip install vcf-annotation-tools --upgrade
+
+Docker
+------
+
+A Docker container for VAtools is available on DockerHub using the
+`mgibio/vcf_annotation_tools-cwl <https://hub.docker.com/r/mgibio/vcf_annotation_tools-cwl/>`_ repo.
