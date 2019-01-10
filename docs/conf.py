@@ -19,7 +19,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'VCF Annotation Tools'
+project = 'VCF Annotation Tools (VAtools)'
 copyright = '2018, Susanna Kiwala, Chris Miller'
 author = 'Susanna Kiwala, Chris Miller'
 
@@ -120,7 +120,7 @@ html_sidebars = { '**': ['globaltoc.html', 'searchbox.html']}
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'VCFAnnotationToolsdoc'
+htmlhelp_basename = 'VAtoolsdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -147,7 +147,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'VCFAnnotationTools.tex', 'VCF Annotation Tools Documentation',
+    (master_doc, 'VAtools.tex', 'VAtools Documentation',
      'Susanna Kiwala, Chris Miller', 'manual'),
 ]
 
@@ -157,7 +157,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'vcfannotationtools', 'VCF Annotation Tools Documentation',
+    (master_doc, 'vatools', 'VAtools Documentation',
      [author], 1)
 ]
 
@@ -168,7 +168,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'VCFAnnotationTools', 'VCF Annotation Tools Documentation',
-     author, 'VCFAnnotationTools', 'One line description of project.',
+    (master_doc, 'VAtools', 'VAtools Documentation',
+     author, 'VAtools', 'One line description of project.',
      'Miscellaneous'),
 ]
