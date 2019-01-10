@@ -1,12 +1,12 @@
-.. VCF Annotation Tools documentation master file, created by
+.. VAtools  documentation master file, created by
    sphinx-quickstart on Wed Aug  8 09:54:20 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-VCF Annotation Tools
-====================
+VCF Annotation Tools (VAtools)
+==============================
 
-VCF Annotation Tools is a python package that includes several tools to
+VAtools is a python package that includes several tools to
 annotate VCF files with data from other tools.
 
 **vcf-readcount-annotator**

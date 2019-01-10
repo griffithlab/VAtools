@@ -1,11 +1,11 @@
 Install
 =======
 
-The VCF Annotation Tools suite is written for Linux and Mac OS X.
+The VAtools suite is written for Linux and Mac OS X.
 If you are using Windows you will need to set up a
 Linux environment, for example by setting up a virtual machine.
 
-VCF Annotation Tools requires Python 3.5. Before running any
+VAtools requires Python 3.5. Before running any
 installation steps, check the Python version installed on your system:
 
 .. code-block:: none
@@ -21,7 +21,7 @@ we **strongly** recommmend using Conda instead of installing Python 3.5
 locally.
 
 Once you have set up your Python 3.5 environment correctly you can use
-``pip`` to install VCF Anntotation Tools. Make sure you have ``pip``
+``pip`` to install VAtools. Make sure you have ``pip``
 installed. ``pip`` is generally included in python distributions, but may
 need to be upgraded before use. See the `instructions
 <https://packaging.python.org/en/latest/installing/#install-pip-setuptools-and-wheel>`_
@@ -40,8 +40,8 @@ under the default environment by running this command:
 
    pip show vcf-annotation-tools
 
-``pip`` will fetch and install VCF Annotation Tools and its dependencies for you.
-After installing, each tool of the VCF Annotation Tools package is available in
+``pip`` will fetch and install VAtools and its dependencies for you.
+After installing, each tool of the VAtools package is available in
 its own command line tree directly from the Terminal.
 
 If you have an old version of the vcf-annotation-tools package installed you might
