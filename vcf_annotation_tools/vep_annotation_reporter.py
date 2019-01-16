@@ -22,7 +22,8 @@ def define_parser():
     )
     parser.add_argument(
         "-t", "--input_tsv",
-        help="A TSV report file to add VEP annotations to. Required columns are CHROM, POS, REF, ALT. These are used to match each TSV entry to a VCF entry. Must be tab-delimited."
+        help="A TSV report file to add VEP annotations to. Required columns are CHROM, POS, REF, ALT. "
+            +"These are used to match each TSV entry to a VCF entry. Must be tab-delimited."
     )
     parser.add_argument(
         "-o", "--output-tsv",
@@ -96,8 +97,8 @@ def transcript_for_alt(transcripts, alt):
             return transcript
     return transcripts[alt][0]
 
-def decode_hex(string):
-    hex_string = string.group(0).replace('%', '')
+def decode_hex(match_string):
+    hex_string = match_string.group(0).replace('%', '')
     return binascii.unhexlify(hex_string).decode('utf-8')
 
 def extract_vep_fields(args):
