@@ -76,6 +76,8 @@ def resolve_alleles(entry, csq_alleles):
                 alleles[alt] = 'deletion'
             elif len(csq_alleles) == 1:
                 alleles[alt] = list(csq_alleles)[0]
+            else:
+                print("Warning: Unsupported alleles {} in VEP annotation for SV {}".format(csq_alleles, entry))
     else:
         for alt in entry.ALT:
             alt = alt.serialize()
