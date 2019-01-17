@@ -23,12 +23,17 @@ annotate VCF files with data from other tools.
     A tool that will add data from a tab-delimited file to any user-specified
     field in the VCF INFO column.
 
+**vep-annotation-reporter**
+    A tool to create a tab-delimited (TSV) file of variants in a VCF and their
+    VEP annotations.
+
 .. toctree::
    :maxdepth: 1
 
    vcf_readcount_annotator
    vcf_expression_annotator
    vcf_info_annotator
+   vep_annotation_reporter
    install
    license
    contact
