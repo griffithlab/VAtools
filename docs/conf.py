@@ -99,7 +99,7 @@ html_logo = 'images/VAT-logo_v1a.png'
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
 #
-#html_favicon = 'images/pVACtools_favicon_v1a.png'
+html_favicon = 'images/VAT_favicon_v1a.png'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
