@@ -10,6 +10,7 @@ setup(
             "vcf-readcount-annotator = vcf_annotation_tools.vcf_readcount_annotator:main",
             "vcf-info-annotator = vcf_annotation_tools.vcf_info_annotator:main",
             "vep-annotation-reporter = vcf_annotation_tools.vep_annotation_reporter:main",
+            "transform-split-values = vcf_annotation_tools.transform_split_values:main",
         ]
     },
     install_requires=[
