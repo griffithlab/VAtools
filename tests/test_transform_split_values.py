@@ -133,3 +133,15 @@ class TransformSplitValuesTests(unittest.TestCase):
         ]
         transform_split_values.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.no_ad.tsv'), output_file.name))
+
+    def test_input_tsv(self):
+        output_file = tempfile.NamedTemporaryFile()
+        command = [
+            os.path.join(self.test_data_dir, '..', 'single_sample.DNA.readcount.vcf'),
+            'AD',
+            'ref',
+            '-t', os.path.join(self.test_data_dir, 'variants.tsv'),
+            '-o', output_file.name
+        ]
+        transform_split_values.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.with_input_tsv.tsv'), output_file.name))

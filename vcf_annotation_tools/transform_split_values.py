@@ -141,11 +141,15 @@ def field_names(args):
 
 def add_field_values_to_row(args, row, field_values):
     field_annotations = []
-    value = field_values[row['CHROM']][row['POS']][row['REF']][row['ALT']]
-    for operation in args.operations:
-        if value is not None and operation in value:
-            row["{}-{}".format(args.format_field, operation)] = value[operation]
-        else:
+    if row['CHROM'] in field_values and row['POS'] in field_values[row['CHROM']] and row['REF'] in field_values[row['CHROM']][row['POS']] and row['ALT'] in field_values[row['CHROM']][row['POS']][row['REF']]:
+        value = field_values[row['CHROM']][row['POS']][row['REF']][row['ALT']]
+        for operation in args.operations:
+            if value is not None and operation in value:
+                row["{}-{}".format(args.format_field, operation)] = value[operation]
+            else:
+                row["{}-{}".format(args.format_field, operation)] = '-'
+    else:
+        for operation in args.operations:
             row["{}-{}".format(args.format_field, operation)] = '-'
     return row
 
