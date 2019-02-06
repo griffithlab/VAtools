@@ -70,6 +70,17 @@ class TransformSplitValuesTests(unittest.TestCase):
             transform_split_values.main(command)
         self.assertTrue('format field GT incompatible with operation sum. Not of Type Integer or Float.' in str(context.exception))
 
+    def test_error_missing_column_in_tsv(self):
+        with self.assertRaises(Exception) as context:
+            command = [
+                os.path.join(self.test_data_dir, 'input.empty_ad.vcf'),
+                'AD',
+                'ref',
+                '-t', os.path.join(self.test_data_dir, '..', 'vep_annotation_reporter', 'variants.no_ALT.tsv'),
+            ]
+            transform_split_values.main(command)
+        self.assertTrue("doesn't contain required column 'ALT'." in str(context.exception))
+
     def test_all_operations(self):
         output_file = tempfile.NamedTemporaryFile()
         command = [
