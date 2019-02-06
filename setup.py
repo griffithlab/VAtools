@@ -1,15 +1,15 @@
 from setuptools import setup
 
 setup(
-    name="vcf-annotation-tools",
+    name="vatools",
     version="3.0.0",
-    packages=["vcf_annotation_tools"],
+    packages=["vatools"],
     entry_points={
         "console_scripts":[
-            "vcf-expression-annotator = vcf_annotation_tools.vcf_expression_annotator:main",
-            "vcf-readcount-annotator = vcf_annotation_tools.vcf_readcount_annotator:main",
-            "vcf-info-annotator = vcf_annotation_tools.vcf_info_annotator:main",
-            "vep-annotation-reporter = vcf_annotation_tools.vep_annotation_reporter:main",
+            "vcf-expression-annotator = vatools.vcf_expression_annotator:main",
+            "vcf-readcount-annotator = vatools.vcf_readcount_annotator:main",
+            "vcf-info-annotator = vatools.vcf_info_annotator:main",
+            "vep-annotation-reporter = vatools.vep_annotation_reporter:main",
         ]
     },
     install_requires=[
@@ -30,11 +30,11 @@ setup(
         'License :: OSI Approved :: MIT License',
     ],
 
-    author = "Susanna Kiwala",
-    author_email = "ssiebert@wustl.edu",
+    author = 'Susanna Kiwala, Chris Miller',
+    author_email = "help@vatools.org",
     description = "A tool for annotating VCF files with expression and readcount data",
     license = "MIT License",
     keywords = "cancer sequencing variant variants gene expression readcounts VAF allele frequency FPKM TPM transcript VCF",
     #This needs to be the url where the code is being hosted
-    url = "https://github.com/griffithlab/vcf-annotation-tools",
+    url = "https://github.com/griffithlab/vatools",
 )
