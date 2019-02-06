@@ -22,7 +22,7 @@ def define_parser():
     )
     parser.add_argument(
         "operations",
-        help="The operation to execute on the chosen genotype field.\n"
+        help="The operation to execute on the chosen field.\n"
             +"ref:  Extract the first value in a R-number field (the reference value).\n"
             +"alt:  Extract the second value in a R-number field (the alt value).\n"
             +"sum:  Calculate the sum of all the numbers in the field.\n"
