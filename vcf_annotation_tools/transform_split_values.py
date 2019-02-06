@@ -134,30 +134,30 @@ def extract_field_values(args):
             else:
                 values[chr][pos][reference][alts_string][operation] = '-'
     vcf_reader.close()
-    return values
+    return (values, sample_name)
 
-def field_names(args):
-    return list(map(lambda operation: "{}-{}".format(args.format_field, operation), args.operations))
+def field_names(args, sample_name):
+    return list(map(lambda operation: "{}-{}-{}".format(sample_name, args.format_field, operation), args.operations))
 
-def add_field_values_to_row(args, row, field_values):
+def add_field_values_to_row(args, row, field_values, sample_name):
     field_annotations = []
     if row['CHROM'] in field_values and row['POS'] in field_values[row['CHROM']] and row['REF'] in field_values[row['CHROM']][row['POS']] and row['ALT'] in field_values[row['CHROM']][row['POS']][row['REF']]:
         value = field_values[row['CHROM']][row['POS']][row['REF']][row['ALT']]
         for operation in args.operations:
             if value is not None and operation in value:
-                row["{}-{}".format(args.format_field, operation)] = value[operation]
+                row["{}-{}-{}".format(sample_name, args.format_field, operation)] = value[operation]
             else:
-                row["{}-{}".format(args.format_field, operation)] = '-'
+                row["{}-{}-{}".format(sample_name, args.format_field, operation)] = '-'
     else:
         for operation in args.operations:
-            row["{}-{}".format(args.format_field, operation)] = '-'
+            row["{}-{}-{}".format(sample_name, args.format_field, operation)] = '-'
     return row
 
 def main(args_input = sys.argv[1:]):
     parser = define_parser()
     args = parser.parse_args(args_input)
 
-    field_values = extract_field_values(args)
+    (field_values, sample_name) = extract_field_values(args)
 
     if args.output_tsv:
         output_file = args.output_tsv
@@ -169,17 +169,17 @@ def main(args_input = sys.argv[1:]):
         with open(args.input_tsv, 'r') as input_filehandle:
             tsv_reader = create_tsv_reader(input_filehandle)
             output_filehandle = open(output_file, 'w')
-            writer = csv.DictWriter(output_filehandle, fieldnames = tsv_reader.fieldnames + field_names(args), delimiter = "\t")
+            writer = csv.DictWriter(output_filehandle, fieldnames = tsv_reader.fieldnames + field_names(args, sample_name), delimiter = "\t")
             writer.writeheader()
             for entry in tsv_reader:
                 row = entry
-                row = add_field_values_to_row(args, row, field_values)
+                row = add_field_values_to_row(args, row, field_values, sample_name)
                 writer.writerow(row)
             output_filehandle.close()
     else:
         (vcf_reader, sample_name) = create_vcf_reader(args)
         with open(output_file, 'w') as output_filehandle:
-            writer = csv.DictWriter(output_filehandle, fieldnames = ['CHROM', 'POS', 'REF', 'ALT'] + field_names(args), delimiter = "\t")
+            writer = csv.DictWriter(output_filehandle, fieldnames = ['CHROM', 'POS', 'REF', 'ALT'] + field_names(args, sample_name), delimiter = "\t")
             writer.writeheader()
             for variant in vcf_reader:
                 row = {
@@ -188,7 +188,7 @@ def main(args_input = sys.argv[1:]):
                     'REF'  : variant.REF,
                     'ALT'  : ','.join(a.serialize() for a in variant.ALT)
                 }
-                row = add_field_values_to_row(args, row, field_values)
+                row = add_field_values_to_row(args, row, field_values, sample_name)
                 writer.writerow(row)
 
 if __name__ == '__main__':
