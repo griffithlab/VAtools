@@ -85,17 +85,23 @@ def create_tsv_reader(input_filehandle):
             raise Exception("ERROR: Input TSV {} doesn't contain required column '{}'.".format(input_filehandle.name, field))
     return tsv_reader
 
-def ref(field_value):
-    return field_value[0]
+def ref(field_values):
+    return handle_empty_array(field_values, "field_values[0]")
 
 def alt(field_values):
-    return field_values[1]
+    return handle_empty_array(field_values, "field_values[1]")
 
 def ref_ratio(field_values):
-    return field_values[0] / sum(field_values)
+    return handle_empty_array(field_values, "field_values[0] / sum(field_values)")
 
 def alt_ratio(field_values):
-    return field_values[1] / sum(field_values)
+    return handle_empty_array(field_values, "field_values[1] / sum(field_values)")
+
+def handle_empty_array(field_values, action):
+    if len(field_values) == 0:
+        return '-'
+    else:
+        return eval(action)
 
 def extract_field_values(args):
     (vcf_reader, sample_name) = create_vcf_reader(args)
