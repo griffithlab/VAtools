@@ -128,8 +128,11 @@ def extract_field_values(args):
                 values[chr][pos][reference][alts_string][operation] = '-'
                 continue
 
-            field_value = variant.call_for_sample[sample_name].data[args.format_field]
-            values[chr][pos][reference][alts_string][operation] = eval("{}({})".format(operation, field_value))
+            if args.format_field in variant.call_for_sample[sample_name].data:
+                field_value = variant.call_for_sample[sample_name].data[args.format_field]
+                values[chr][pos][reference][alts_string][operation] = eval("{}({})".format(operation, field_value))
+            else:
+                values[chr][pos][reference][alts_string][operation] = '-'
     vcf_reader.close()
     return values
 

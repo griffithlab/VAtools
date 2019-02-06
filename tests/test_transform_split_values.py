@@ -111,3 +111,14 @@ class TransformSplitValuesTests(unittest.TestCase):
         ]
         transform_split_values.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.empty_ad.tsv'), output_file.name))
+
+    def test_variant_without_ad(self):
+        output_file = tempfile.NamedTemporaryFile()
+        command = [
+            os.path.join(self.test_data_dir, 'input.no_ad.vcf'),
+            'AD',
+            'ref',
+            '-o', output_file.name
+        ]
+        transform_split_values.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.no_ad.tsv'), output_file.name))
