@@ -118,7 +118,7 @@ def extract_field_values(args):
 
         for operation in args.operations:
             if operation in ['ref', 'alt', 'ref_ratio', 'alt_ratio'] and len(alts) > 1:
-                print("Multi-allelic sites are not supported for operation {}. Skipping entry {}.".format(operation, variant))
+                print("Multi-allelic sites are not supported for operation {}. Skipping entry {} {}.".format(operation, chr, pos))
                 values[chr][pos][reference][alts_string][operation] = '-'
                 continue
 

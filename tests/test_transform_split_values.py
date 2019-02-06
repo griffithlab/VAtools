@@ -89,3 +89,14 @@ class TransformSplitValuesTests(unittest.TestCase):
         ]
         transform_split_values.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.all_operations.tsv'), output_file.name))
+
+    def test_multiallelic_site(self):
+        output_file = tempfile.NamedTemporaryFile()
+        command = [
+            os.path.join(self.test_data_dir, '..', 'input.multiallelic.vcf.gz'),
+            'AD',
+            'ref',
+            '-o', output_file.name
+        ]
+        transform_split_values.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.multiallelic.tsv'), output_file.name))

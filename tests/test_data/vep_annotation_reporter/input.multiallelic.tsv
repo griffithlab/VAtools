@@ -1,0 +1,2 @@
+CHROM	POS	REF	ALT	Consequence
+chr17	7675088	C	T,A	missense_variant,missense_variant
