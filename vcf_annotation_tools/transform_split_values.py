@@ -130,7 +130,10 @@ def extract_field_values(args):
 
             if args.format_field in variant.call_for_sample[sample_name].data:
                 field_value = variant.call_for_sample[sample_name].data[args.format_field]
-                values[chr][pos][reference][alts_string][operation] = eval("{}({})".format(operation, field_value))
+                result = eval("{}({})".format(operation, field_value))
+                if result != '-':
+                    result = round(result, 4)
+                values[chr][pos][reference][alts_string][operation] = result
             else:
                 values[chr][pos][reference][alts_string][operation] = '-'
     vcf_reader.close()
