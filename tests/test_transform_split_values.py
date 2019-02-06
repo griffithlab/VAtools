@@ -84,7 +84,7 @@ class TransformSplitValuesTests(unittest.TestCase):
     def test_all_operations(self):
         output_file = tempfile.NamedTemporaryFile()
         command = [
-            os.path.join(self.test_data_dir, '..', 'single_sample.DNA.readcount.vcf'),
+            os.path.join(self.test_data_dir, '..', 'single_sample.dna.readcount.vcf'),
             'AD',
             'ref',
             'alt',
@@ -137,7 +137,7 @@ class TransformSplitValuesTests(unittest.TestCase):
     def test_input_tsv(self):
         output_file = tempfile.NamedTemporaryFile()
         command = [
-            os.path.join(self.test_data_dir, '..', 'single_sample.DNA.readcount.vcf'),
+            os.path.join(self.test_data_dir, '..', 'single_sample.dna.readcount.vcf'),
             'AD',
             'ref',
             '-t', os.path.join(self.test_data_dir, 'variants.tsv'),
