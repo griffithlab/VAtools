@@ -55,4 +55,4 @@ Docker
 ------
 
 A Docker container for VAtools is available on DockerHub using the
-`mgibio/vatools-cwl <https://hub.docker.com/r/mgibio/vatools-cwl/>`_ repo.
+`griffithlab/vatools <https://hub.docker.com/r/griffithlab/vatools/>`_ repo.
