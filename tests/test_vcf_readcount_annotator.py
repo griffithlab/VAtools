@@ -203,3 +203,17 @@ class VcfExpressionEncoderTests(unittest.TestCase):
 
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'indel_mode.bam_readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
         temp_path.cleanup()
+
+    def test_complex_indel(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.complex_indel.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf.gz'),
+            os.path.join(self.test_data_dir, 'complex_indel.bam_readcount'),
+            'DNA',
+            '-s', 'TUMOR',
+        ]
+        vcf_readcount_annotator.main(command)
+
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'complex_indel.readcount.vcf.gz'), os.path.join(temp_path.name, 'input.readcount.vcf.gz')))
+        temp_path.cleanup()

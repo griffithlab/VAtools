@@ -95,6 +95,15 @@ def is_insertion(ref, alt):
 def is_deletion(ref, alt):
     return len(alt) < len(ref)
 
+def has_complex_variant(entry):
+    if has_indel(entry):
+        for alt in entry.ALT:
+            alt = alt.serialize()
+            ref = entry.REF
+            if len(ref) == len(alt) or (len(ref) > 1 and len(alt) > 1):
+                return True
+    return False
+
 def simplify_indel_allele(ref, alt):
     while len(ref)> 0 and len(alt) > 0 and ref[-1] == alt[-1]:
         ref = ref[0:-1]
@@ -219,6 +228,11 @@ def main(args_input = sys.argv[1:]):
         if args.variant_type == 'indel' and has_snv(entry):
             if has_indel(entry):
                 logging.warning("Running in `indel` variant type mode but VCF entry for chr {} pos {} ref {} alts {} contains both SNVs and InDels. Skipping.".format(chromsome, entry.POS, reference, alts))
+            vcf_writer.write_record(entry)
+            continue
+
+        #If the entry contains a complex variant, skip it
+        if has_complex_variant(entry):
             vcf_writer.write_record(entry)
             continue
 
