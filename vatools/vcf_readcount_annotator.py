@@ -77,7 +77,7 @@ def has_snv(entry):
     for alt in entry.ALT:
         alt = alt.serialize()
         ref = entry.REF
-        if len(ref) == len(alt):
+        if len(ref) == 1 and len(alt) == 1:
             return True
     return False
 
@@ -85,7 +85,7 @@ def has_indel(entry):
     for alt in entry.ALT:
         alt = alt.serialize()
         ref = entry.REF
-        if len(ref) != len(alt):
+        if len(ref) > 1 or len(alt) > 1:
             return True
     return False
 
