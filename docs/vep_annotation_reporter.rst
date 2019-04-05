@@ -35,3 +35,10 @@ Usage
 -----
 
 .. program-output:: vep-annotation-reporter -h
+
+Example Command
+---------------
+
+.. code-block:: none
+
+   vep-annotation-reporter input.vcf Consequence SYMBOL Feature -t input.tsv -o output.tsv
