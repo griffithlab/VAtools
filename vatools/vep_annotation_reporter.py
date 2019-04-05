@@ -17,7 +17,8 @@ def define_parser():
     )
     parser.add_argument(
         "vep_fields",
-        help="The VEP fields to report.",
+        help="The VEP fields to report. Takes an array of fields, given as comma-separated values between "
+            +"curly brackets. Example: {'Consequence','SYMBOL','Feature','HGVSc','HGVSp'}"
         nargs='+',
     )
     parser.add_argument(
