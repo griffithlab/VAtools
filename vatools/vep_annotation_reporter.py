@@ -17,7 +17,7 @@ def define_parser():
     )
     parser.add_argument(
         "vep_fields",
-        help="The VEP fields to report. Takes a space-separated list of fields. "
+        help="The VEP fields to report. Takes a space-separated list of fields. ",
             +"Example:  Consequence SYMBOL Feature"
         nargs='+',
     )
