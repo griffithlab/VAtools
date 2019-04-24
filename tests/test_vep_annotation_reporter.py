@@ -109,3 +109,14 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         vep_annotation_reporter.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.variants_without_csq.tsv'), os.path.join(temp_path.name, 'input.tsv')))
         temp_path.cleanup()
+
+    def test_vcf_with_multiple_transcripts_and_no_pick(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.merge_multiple_transcripts.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf.gz'),
+            'SYMBOL',
+        ]
+        vep_annotation_reporter.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.merge_multiple_transcripts.tsv'), os.path.join(temp_path.name, 'input.tsv')))
+        temp_path.cleanup()
