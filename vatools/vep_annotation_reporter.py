@@ -95,12 +95,12 @@ def resolve_alleles(entry, csq_alleles):
     return alleles
 
 def transcript_for_alt(transcripts, alt):
-    merged_transcripts = {}
     for transcript in transcripts[alt]:
         if 'PICK' in transcript and transcript['PICK'] == '1':
             return transcript
-        else:
-            merged_transcripts = {x: ",".join(filter(None, [merged_transcripts.get(x, None), transcript.get(x,"")])) for x in set(merged_transcripts).union(transcript)}
+    merged_transcripts = {}
+    for key in transcripts[alt][0].keys():
+        merged_transcripts[key] = ",".join([transcript[key] for transcript in transcripts[alt]])
     return merged_transcripts
 
 def decode_hex(match_string):
