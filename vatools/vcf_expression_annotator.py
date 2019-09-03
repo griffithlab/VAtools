@@ -60,6 +60,8 @@ def parse_expression_file(args, vcf_reader, vcf_writer):
     else:
         id_column = resolve_id_column(args)
         df = pd.read_csv(args.expression_file, sep='\t')
+    if args.ignore_transcript_version:
+        df['transcript_without_version'] = df[id_column].apply(lambda x: re.sub(r'\.[0-9]+$', '', x))
     expression_column = resolve_expression_column(args)
     if expression_column not in df.columns.values:
         vcf_reader.close()
@@ -109,7 +111,6 @@ def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_colu
     for item in items:
         entry_count += 1
         if tag == 'TX' and ignore_transcript_version:
-            df['transcript_without_version'] = df[id_column].apply(lambda x: re.sub(r'\.[0-9]+$', '', x))
             subset = df.loc[df['transcript_without_version'] == re.sub(r'\.[0-9]+$', '', item)]
         else:
             subset = df.loc[df[id_column] == item]
