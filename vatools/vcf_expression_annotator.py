@@ -110,7 +110,7 @@ def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_colu
     expressions = {}
     for item in items:
         entry_count += 1
-        if tag == 'TX' and ignore_transcript_version:
+        if ignore_transcript_version:
             subset = df.loc[df['transcript_without_version'] == re.sub(r'\.[0-9]+$', '', item)]
         else:
             subset = df.loc[df[id_column] == item]
@@ -214,7 +214,7 @@ def main(args_input = sys.argv[1:]):
         if args.mode == 'gene':
             genes = list(genes)
             if len(genes) > 0:
-                (entry, missing_expressions_count, entry_count) = add_expressions(entry, is_multi_sample, args.sample_name, df, genes, 'GX', id_column, expression_column, False, missing_expressions_count, entry_count)
+                (entry, missing_expressions_count, entry_count) = add_expressions(entry, is_multi_sample, args.sample_name, df, genes, 'GX', id_column, expression_column, args.ignore_transcript_version, missing_expressions_count, entry_count)
         elif args.mode == 'transcript':
             transcript_ids = list(transcript_ids)
             if len(transcript_ids) > 0:
