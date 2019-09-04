@@ -17,7 +17,8 @@ def define_parser():
     )
     parser.add_argument(
         "vep_fields",
-        help="The VEP fields to report.",
+        help="The VEP fields to report. Takes a space-separated list of fields. "
+            +"Example:  Consequence SYMBOL Feature",
         nargs='+',
     )
     parser.add_argument(
@@ -97,7 +98,10 @@ def transcript_for_alt(transcripts, alt):
     for transcript in transcripts[alt]:
         if 'PICK' in transcript and transcript['PICK'] == '1':
             return transcript
-    return transcripts[alt][0]
+    merged_transcripts = {}
+    for key in transcripts[alt][0].keys():
+        merged_transcripts[key] = ",".join([transcript[key] for transcript in transcripts[alt]])
+    return merged_transcripts
 
 def decode_hex(match_string):
     hex_string = match_string.group(0).replace('%', '')

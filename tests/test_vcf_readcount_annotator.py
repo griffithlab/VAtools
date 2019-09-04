@@ -2,7 +2,7 @@ import unittest
 import sys
 import os
 import py_compile
-from vcf_annotation_tools import vcf_readcount_annotator
+from vatools import vcf_readcount_annotator
 import tempfile
 from filecmp import cmp
 import io
@@ -13,7 +13,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         base_dir          = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-        cls.executable    = os.path.join(base_dir, 'vcf_annotation_tools', 'vcf_readcount_annotator.py')
+        cls.executable    = os.path.join(base_dir, 'vatools', 'vcf_readcount_annotator.py')
         cls.test_data_dir = os.path.join(base_dir, 'tests', 'test_data')
 
     def test_source_compiles(self):
@@ -202,4 +202,32 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         vcf_readcount_annotator.main(command)
 
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'indel_mode.bam_readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        temp_path.cleanup()
+
+    def test_complex_indel(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.complex_indel.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf.gz'),
+            os.path.join(self.test_data_dir, 'complex_indel.bam_readcount'),
+            'DNA',
+            '-s', 'TUMOR',
+        ]
+        vcf_readcount_annotator.main(command)
+
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'complex_indel.readcount.vcf.gz'), os.path.join(temp_path.name, 'input.readcount.vcf.gz')))
+        temp_path.cleanup()
+
+    def test_mnp(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.mnp.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf.gz'),
+            os.path.join(self.test_data_dir, 'complex_indel.bam_readcount'),
+            'DNA',
+            '-s', 'TUMOR',
+        ]
+        vcf_readcount_annotator.main(command)
+
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'mnp.readcount.vcf.gz'), os.path.join(temp_path.name, 'input.readcount.vcf.gz')))
         temp_path.cleanup()

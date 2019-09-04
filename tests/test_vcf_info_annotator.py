@@ -2,7 +2,7 @@ import unittest
 import sys
 import os
 import py_compile
-from vcf_annotation_tools import vcf_info_annotator
+from vatools import vcf_info_annotator
 import tempfile
 from filecmp import cmp
 
@@ -10,7 +10,7 @@ class VcfInfoEncoderTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         base_dir          = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-        cls.executable    = os.path.join(base_dir, 'vcf_annotation_tools', 'vcf_info_annotator.py')
+        cls.executable    = os.path.join(base_dir, 'vatools', 'vcf_info_annotator.py')
         cls.test_data_dir = os.path.join(base_dir, 'tests', 'test_data')
 
     def test_source_compiles(self):

@@ -31,28 +31,28 @@ After you have pip installed, type the following command on your Terminal:
 
 .. code-block:: none
 
-   pip install vcf-annotation-tools
+   pip install vatools
 
-You can check that the ``vcf-annotation-tools`` package has been installed
+You can check that the ``vatools`` package has been installed
 under the default environment by running this command:
 
 .. code-block:: none
 
-   pip show vcf-annotation-tools
+   pip show vatools
 
 ``pip`` will fetch and install VAtools and its dependencies for you.
 After installing, each tool of the VAtools package is available in
 its own command line tree directly from the Terminal.
 
-If you have an old version of the vcf-annotation-tools package installed you might
+If you have an old version of the vatools package installed you might
 want to consider upgrading to the latest version:
 
 .. code-block:: none
 
-   pip install vcf-annotation-tools --upgrade
+   pip install vatools --upgrade
 
 Docker
 ------
 
 A Docker container for VAtools is available on DockerHub using the
-`mgibio/vcf_annotation_tools-cwl <https://hub.docker.com/r/mgibio/vcf_annotation_tools-cwl/>`_ repo.
+`griffithlab/vatools <https://hub.docker.com/r/griffithlab/vatools/>`_ repo.

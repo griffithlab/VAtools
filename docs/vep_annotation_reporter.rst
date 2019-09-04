@@ -14,7 +14,8 @@ input VCF can be identified by inspecting the ``Description`` field of the
 available in the VCF (delimited by ``|``).
 
 If a variant is annotate with multiple transcript consequences by VEP then the
-values for the first transcript will be reported. However, if VEP was run with
+values for all transcript annotation will be returned as comma-separated
+values. This is the default behavior unless VEP was run with
 one of the ``--flag_pick`` options, all possible transcript consequences will be
 reported by VEP but only one of these consequences will be picked by VEP as the
 "best" consequence. This is denoted in the ``PICK`` field. If this field is
@@ -35,3 +36,10 @@ Usage
 -----
 
 .. program-output:: vep-annotation-reporter -h
+
+Example Command
+---------------
+
+.. code-block:: none
+
+   vep-annotation-reporter input.vcf Consequence SYMBOL Feature -t input.tsv -o output.tsv

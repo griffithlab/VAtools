@@ -2,7 +2,7 @@ import unittest
 import sys
 import os
 import py_compile
-from vcf_annotation_tools import vep_annotation_reporter
+from vatools import vep_annotation_reporter
 import tempfile
 from filecmp import cmp
 import io
@@ -13,7 +13,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         base_dir          = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-        cls.executable    = os.path.join(base_dir, 'vcf_annotation_tools', 'vep_annotation_reporter.py')
+        cls.executable    = os.path.join(base_dir, 'vatools', 'vep_annotation_reporter.py')
         cls.test_data_dir = os.path.join(base_dir, 'tests', 'test_data', 'vep_annotation_reporter')
 
     def test_source_compiles(self):
@@ -108,4 +108,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         ]
         vep_annotation_reporter.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.variants_without_csq.tsv'), os.path.join(temp_path.name, 'input.tsv')))
+        temp_path.cleanup()
+
+    def test_vcf_with_multiple_transcripts_and_no_pick(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.merge_multiple_transcripts.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf.gz'),
+            'SYMBOL',
+        ]
+        vep_annotation_reporter.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.merge_multiple_transcripts.tsv'), os.path.join(temp_path.name, 'input.tsv')))
         temp_path.cleanup()
