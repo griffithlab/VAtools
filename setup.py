@@ -10,6 +10,7 @@ setup(
             "vcf-readcount-annotator = vatools.vcf_readcount_annotator:main",
             "vcf-info-annotator = vatools.vcf_info_annotator:main",
             "vep-annotation-reporter = vatools.vep_annotation_reporter:main",
+            "transform-split-values = vatools.transform_split_values:main",
         ]
     },
     install_requires=[

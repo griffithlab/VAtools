@@ -78,7 +78,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
 
     def test_multiple_multiallelic_site(self):
         temp_path = tempfile.TemporaryDirectory()
-        os.symlink(os.path.join(self.test_data_dir, 'input.multiallelic.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
+        os.symlink(os.path.join(self.test_data_dir, '..', 'input.multiallelic.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
         command = [
             os.path.join(temp_path.name, 'input.vcf.gz'),
             'Consequence',
