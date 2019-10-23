@@ -9,6 +9,7 @@ import tempfile
 import csv
 import binascii
 from statistics import mean, median, stdev
+import logging
 
 def define_parser():
     parser = argparse.ArgumentParser('transform-split-values')
@@ -66,7 +67,7 @@ def create_vcf_reader(args):
     else:
         sample_name = vcf_reader.header.samples.names[0]
         if args.sample_name != sample_name:
-            print("Warning: VCF doesn't contain requested sample {}. Using sample {}".format(args.sample_name, sample_name))
+            logging.warn("VCF doesn't contain requested sample {}. Using sample {}".format(args.sample_name, sample_name))
     if args.format_field not in vcf_reader.header.format_ids():
         vcf_reader.close()
         raise Exception("ERROR: VCF {} does not contain a format field {}.".format(args.input_vcf, args.format_field))
@@ -126,7 +127,7 @@ def extract_field_values(args):
 
         for operation in args.operations:
             if operation in ['ref', 'alt', 'ref_ratio', 'alt_ratio'] and len(alts) > 1:
-                print("Multi-allelic sites are not supported for operation {}. Skipping entry {} {}.".format(operation, chr, pos))
+                logging.warn("Multi-allelic sites are not supported for operation {}. Skipping entry {} {}.".format(operation, chr, pos))
                 values[chr][pos][reference][alts_string][operation] = '-'
                 continue
 
