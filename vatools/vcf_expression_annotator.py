@@ -60,6 +60,8 @@ def parse_expression_file(args, vcf_reader, vcf_writer):
     else:
         id_column = resolve_id_column(args)
         df = pd.read_csv(args.expression_file, sep='\t')
+    if args.ignore_ensembl_id_version:
+        df['transcript_without_version'] = df[id_column].apply(lambda x: re.sub(r'\.[0-9]+$', '', x))
     expression_column = resolve_expression_column(args)
     if expression_column not in df.columns.values:
         vcf_reader.close()
@@ -104,12 +106,11 @@ def create_vcf_writer(args, vcf_reader):
         output_file = args.output_vcf
     return vcfpy.Writer.from_path(output_file, new_header)
 
-def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_column, expression_column, ignore_transcript_version, missing_expressions_count, entry_count):
+def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_column, expression_column, ignore_ensembl_id_version, missing_expressions_count, entry_count):
     expressions = {}
     for item in items:
         entry_count += 1
-        if tag == 'TX' and ignore_transcript_version:
-            df['transcript_without_version'] = df[id_column].apply(lambda x: re.sub(r'\.[0-9]+$', '', x))
+        if ignore_ensembl_id_version:
             subset = df.loc[df['transcript_without_version'] == re.sub(r'\.[0-9]+$', '', item)]
         else:
             subset = df.loc[df[id_column] == item]
@@ -165,8 +166,8 @@ def define_parser():
             +"written next to the input VCF file with a .tx.vcf or .gx.vcf file ending."
     )
     parser.add_argument(
-        "--ignore-transcript-version",
-        help='Assumes that the final period and number denotes the transcript version and ignores it (i.e. for "ENST00001234.3" - ignores the ".3").',
+        "--ignore-ensembl-id-version",
+        help='Assumes that the final period and number denotes the Ensembl ID version and ignores it (i.e. for "ENST00001234.3" - ignores the ".3").',
         action="store_true"
     )
 
@@ -213,11 +214,11 @@ def main(args_input = sys.argv[1:]):
         if args.mode == 'gene':
             genes = list(genes)
             if len(genes) > 0:
-                (entry, missing_expressions_count, entry_count) = add_expressions(entry, is_multi_sample, args.sample_name, df, genes, 'GX', id_column, expression_column, False, missing_expressions_count, entry_count)
+                (entry, missing_expressions_count, entry_count) = add_expressions(entry, is_multi_sample, args.sample_name, df, genes, 'GX', id_column, expression_column, args.ignore_ensembl_id_version, missing_expressions_count, entry_count)
         elif args.mode == 'transcript':
             transcript_ids = list(transcript_ids)
             if len(transcript_ids) > 0:
-                (entry, missing_expressions_count, entry_count) = add_expressions(entry, is_multi_sample, args.sample_name, df, transcript_ids, 'TX', id_column, expression_column, args.ignore_transcript_version, missing_expressions_count, entry_count)
+                (entry, missing_expressions_count, entry_count) = add_expressions(entry, is_multi_sample, args.sample_name, df, transcript_ids, 'TX', id_column, expression_column, args.ignore_ensembl_id_version, missing_expressions_count, entry_count)
         vcf_writer.write_record(entry)
 
     vcf_reader.close()
