@@ -2,7 +2,7 @@ import unittest
 import sys
 import os
 import py_compile
-from vcf_annotation_tools import transform_split_values
+from vatools import transform_split_values
 import tempfile
 from filecmp import cmp
 import io
@@ -13,7 +13,7 @@ class TransformSplitValuesTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         base_dir          = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-        cls.executable    = os.path.join(base_dir, 'vcf_annotation_tools', 'transform_split_values.py')
+        cls.executable    = os.path.join(base_dir, 'vatools', 'transform_split_values.py')
         cls.test_data_dir = os.path.join(base_dir, 'tests', 'test_data', 'transform_split_values')
 
     def test_source_compiles(self):
