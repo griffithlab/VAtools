@@ -65,6 +65,8 @@ def create_vcf_reader(args):
             sample_name = args.sample_name
     else:
         sample_name = vcf_reader.header.samples.names[0]
+        if args.sample_name != sample_name:
+            print("Warning: VCF doesn't contain requested sample {}. Using sample {}".format(args.sample_name, sample_name))
     if args.format_field not in vcf_reader.header.format_ids():
         vcf_reader.close()
         raise Exception("ERROR: VCF {} does not contain a format field {}.".format(args.input_vcf, args.format_field))
