@@ -293,7 +293,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             os.path.join(self.test_data_dir, 'kallisto.transcripts'),
             'kallisto',
             'transcript',
-            "--ignore-transcript-version",
+            "--ignore-ensembl-id-version",
         ]
         vcf_expression_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.kallisto.with_version.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
@@ -307,7 +307,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             os.path.join(self.test_data_dir, 'kallisto.transcript_version.transcripts'),
             'kallisto',
             'transcript',
-            "--ignore-transcript-version",
+            "--ignore-ensembl-id-version",
         ]
         vcf_expression_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.kallisto.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
