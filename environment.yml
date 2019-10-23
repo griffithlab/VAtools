@@ -11,4 +11,4 @@ dependencies:
 - pip:
   - sphinxjp.themes.basicstrap
   - sphinxcontrib-programoutput
-  - vcf-annotation-tools
+  - vatools
