@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="vatools",
-    version="3.1.0",
+    version="4.0.0",
     packages=["vatools"],
     entry_points={
         "console_scripts":[
