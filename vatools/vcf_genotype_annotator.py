@@ -7,8 +7,9 @@ from collections import OrderedDict
 def create_vcf_reader(args):
     vcf_reader = vcfpy.Reader.from_path(args.input_vcf)
     if args.sample_name in vcf_reader.header.samples.names:
-        vcf_reader.close()
-        raise Exception("VCF already contains a sample column for sample {}.".format(args.sample_name))
+        if 'GT' in vcf_reader.header.format_ids():
+            vcf_reader.close()
+            raise Exception("VCF already contains a sample column for sample {} with a GT field.".format(args.sample_name))
     return vcf_reader
 
 def create_vcf_writer(args, vcf_reader):
@@ -18,14 +19,18 @@ def create_vcf_writer(args, vcf_reader):
         (head, sep, tail) = args.input_vcf.rpartition('.vcf')
         output_file = ('').join([head, '.genotype.vcf', tail])
     sample_info = vcf_reader.header.samples
-    sample_info.names.append(args.sample_name)
-    sample_info.name_to_idx[args.sample_name] = len(sample_info.names)-1
+    if args.sample_name in sample_info.names:
+        append_to_existing_sample = True
+    else:
+        append_to_existing_sample = False
+        sample_info.names.append(args.sample_name)
+        sample_info.name_to_idx[args.sample_name] = len(sample_info.names)-1
     new_header = vcfpy.Header(samples = sample_info)
     for line in vcf_reader.header.lines:
         if not (line.key == 'FORMAT' and line.id == 'GT'):
             new_header.add_line(line)
     new_header.add_format_line(OrderedDict([('ID', 'GT'), ('Number', '1'), ('Type', 'String'), ('Description', 'Genotype')]))
-    return vcfpy.Writer.from_path(output_file, new_header)
+    return ( vcfpy.Writer.from_path(output_file, new_header), append_to_existing_sample )
 
 def define_parser():
     parser = argparse.ArgumentParser("vcf-genotype-annotator")
@@ -56,20 +61,23 @@ def main(args_input = sys.argv[1:]):
     args = parser.parse_args(args_input)
 
     vcf_reader = create_vcf_reader(args)
-    vcf_writer = create_vcf_writer(args, vcf_reader)
+    (vcf_writer, append_to_existing_sample) = create_vcf_writer(args, vcf_reader)
 
     for entry in vcf_reader:
-        new_sample_call = vcfpy.Call(args.sample_name, data={'GT': args.genotype_value})
         if "GT" not in entry.FORMAT:
             if isinstance(entry.FORMAT, tuple):
                 entry.FORMAT = ["GT"]
             else:
                 entry.FORMAT.insert(0, 'GT')
-        if entry.calls:
-            entry.calls.append(new_sample_call)
+        if append_to_existing_sample:
+            entry.call_for_sample[args.sample_name].data['GT'] = args.genotype_value
         else:
-            entry.calls = [new_sample_call]
-        entry.call_for_sample = {call.sample: call for call in entry.calls}
+            new_sample_call = vcfpy.Call(args.sample_name, data={'GT': args.genotype_value})
+            if entry.calls:
+                entry.calls.append(new_sample_call)
+            else:
+                entry.calls = [new_sample_call]
+            entry.call_for_sample = {call.sample: call for call in entry.calls}
         vcf_writer.write_record(entry)
 
     vcf_reader.close()
