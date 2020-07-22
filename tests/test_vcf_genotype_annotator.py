@@ -49,3 +49,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         vcf_genotype_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'single_sample.genotype.vcf'), os.path.join(temp_path.name, 'input.genotype.vcf')))
         temp_path.cleanup()
+
+    def test_no_gt_in_format(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.no_gt_in_format.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            'TUMOR',
+            '0/1',
+        ]
+        vcf_genotype_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'no_gt_in_format.genotype.vcf'), os.path.join(temp_path.name, 'input.genotype.vcf')))
+        temp_path.cleanup()
