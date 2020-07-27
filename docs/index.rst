@@ -24,7 +24,8 @@ annotate VCF files with data from other tools.
     field in the VCF INFO column.
 
 **vcf-genotype-annotator**
-    A tool to add a new sample to an existing VCF file.
+    A tool to add a new sample to an existing VCF file or fill in the GT field
+    for an existing sample in a VCF.
 
 **vep-annotation-reporter**
     A tool to create a tab-delimited (TSV) file of variants in a VCF and their
