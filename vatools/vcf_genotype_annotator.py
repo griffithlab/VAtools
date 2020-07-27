@@ -64,7 +64,7 @@ def main(args_input = sys.argv[1:]):
             if isinstance(entry.FORMAT, tuple):
                 entry.FORMAT = ["GT"]
             else:
-                entry.FORMAT = entry.FORMAT.appened('GT')
+                entry.FORMAT.insert(0, 'GT')
         if entry.calls:
             entry.calls.append(new_sample_call)
         else:
