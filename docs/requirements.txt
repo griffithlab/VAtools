@@ -1,0 +1,5 @@
+sphinx==3.0.0
+sphinxjp.themes.basicstrap
+sphinxcontrib-programoutput
+vatools
+--install-option="--no-deps"
