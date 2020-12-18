@@ -33,7 +33,11 @@ def create_vcf_writer(args, vcf_reader):
     return ( vcfpy.Writer.from_path(output_file, new_header), append_to_existing_sample )
 
 def define_parser():
-    parser = argparse.ArgumentParser("vcf-genotype-annotator")
+    parser = argparse.ArgumentParser(
+        "vcf-genotype-annotator",
+        description = "A tool to add a new sample to an existing VCF file or fill in the GT field " +
+                      "for an existing sample in a VCF."
+    )
 
     parser.add_argument(
         "input_vcf",

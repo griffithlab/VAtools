@@ -12,7 +12,11 @@ from statistics import mean, median, stdev
 import logging
 
 def define_parser():
-    parser = argparse.ArgumentParser('transform-split-values')
+    parser = argparse.ArgumentParser(
+        'transform-split-values',
+        description = "A tool that extracts and manipulates values from existing sample fields " +
+                      "and outputs the results to a TSV file."
+    )
     parser.add_argument(
         "input_vcf",
         help="The VCF file from which to extract information. Multi-allelic sites must be decomposed."

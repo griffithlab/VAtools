@@ -9,7 +9,10 @@ from collections import OrderedDict
 import logging
 
 def define_parser():
-    parser = argparse.ArgumentParser('vcf-readcount-annotator')
+    parser = argparse.ArgumentParser(
+        'vcf-readcount-annotator',
+        description="A tool that will add the data from bam-readcount files to the VCF sample column."
+    )
     parser.add_argument(
         "input_vcf",
         help="A VCF file"

@@ -10,7 +10,11 @@ import csv
 import binascii
 
 def define_parser():
-    parser = argparse.ArgumentParser('vep-annotation-reporter')
+    parser = argparse.ArgumentParser(
+        'vep-annotation-reporter',
+        description = "A tool to create a tab-delimited (TSV) file of variants in a VCF and their " +
+                      "VEP annotations."
+    )
     parser.add_argument(
         "input_vcf",
         help="The VCF file with VEP annotations to report."
