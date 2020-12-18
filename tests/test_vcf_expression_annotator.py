@@ -165,7 +165,7 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             ]
             vcf_expression_annotator.main(command)
             temp_path.cleanup()
-            l.check_present(('root', 'WARNING', "1 of 1 transcripts did not have an expression entry for their gene id."))
+            l.check_present(('root', 'WARNING', "1 of 1 genes did not have an expression entry for their gene id."))
 
     def test_multi_sample_vcf(self):
         temp_path = tempfile.TemporaryDirectory()
