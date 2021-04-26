@@ -52,7 +52,11 @@ def create_vcf_writer(args, vcf_reader):
     return vcfpy.Writer.from_path(output_file, new_header)
 
 def define_parser():
-    parser = argparse.ArgumentParser("vcf-info-annotator")
+    parser = argparse.ArgumentParser(
+        "vcf-info-annotator",
+        description = "A tool that will add data from a tab-delimited file to any user-specified " +
+                      "field in the VCF INFO column."
+    )
 
     parser.add_argument(
         "input_vcf",

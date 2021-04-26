@@ -31,6 +31,11 @@ annotate VCF files with data from other tools.
     A tool to create a tab-delimited (TSV) file of variants in a VCF and their
     VEP annotations.
 
+**ref-transcript-mistmatch-reporter**
+    A tool to identify variants in a VCF where the reference genome used to
+    align and call variants doesn't match the Ensembl reference transcript
+    used by VEP for variant consequence annotations.
+
 **transform-split-values**
     A tool that extracts and manipulates values from existing sample fields
     and outputs the results to a TSV file.
@@ -43,6 +48,7 @@ annotate VCF files with data from other tools.
    vcf_info_annotator
    vcf_genotype_annotator
    vep_annotation_reporter
+   ref_transcript_mismatch_reporter
    transform_split_values
    install
    license

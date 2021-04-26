@@ -12,6 +12,7 @@ setup(
             "vcf-genotype-annotator = vatools.vcf_genotype_annotator:main",
             "vep-annotation-reporter = vatools.vep_annotation_reporter:main",
             "transform-split-values = vatools.transform_split_values:main",
+            "ref-transcript-mismatch-reporter = vatools.ref_transcript_mismatch_reporter:main",
         ]
     },
     install_requires=[

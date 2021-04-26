@@ -1,0 +1,8 @@
+##fileformat=VCFv4.2
+##FILTER=<ID=PASS,Description="All filters passed">
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|Gene|Feature_type|Feature|BIOTYPE|EXON|INTRON|HGVSc|HGVSp|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons|Existing_variation|DISTANCE|STRAND|FLAGS|VARIANT_CLASS|SYMBOL_SOURCE|HGNC_ID|TSL|REFSEQ_MATCH|REFSEQ_OFFSET|DownstreamProtein|ProteinLengthChange|WildtypeProtein">
+##DownstreamProtein=Predicted downstream translation for frameshift mutations
+##ProteinLengthChange=Predicted change in protein product length
+##WildtypeProtein=The normal, non-mutated protein sequence
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+1	40546166	.	GA	G	.	PASS	CSQ=-|splice_region_variant&intron_variant|LOW|PPT1|5538|Transcript|XM_005271007.1|protein_coding||5/7||||||||||-1||deletion|EntrezGene|||||||MASPGCLWLLAVALLPWTCASRALQHLDPPAPLPLVIWHGMGDSCCNPLSMGAIKKMVEKKIPGIYVLSLEIGKTLMEDVENSFFLNVNSQVTTVCQALAKDPKLQQGYNAMGFSQGGQFLRAVAQRCPSPPMINLISVGGQHQGVFGLPRCPGESSHICDFIRKTLNAGAYSKVVQERLVQAEYWHDPIKEDVYRNHSIFLADINQERGINESYKKNLMALKKFVMVKFLNDSIVDPVDSEWFGFYRSGQAKETIPLQETSLYTQVTGRESILGGWCFFSSQFLKLLCSLVLEPFPLHLRALGTPETPDSCPIWVKLVRLLIMCSSLLGTGLQKSTTS

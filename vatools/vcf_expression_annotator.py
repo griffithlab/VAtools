@@ -126,7 +126,13 @@ def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_colu
     return (entry, missing_expressions_count, entry_count)
 
 def define_parser():
-    parser = argparse.ArgumentParser("vcf-expression-annotator")
+    parser = argparse.ArgumentParser(
+        "vcf-expression-annotator",
+        description = "A tool that will add the data from several expression tools' output files" +
+                      "to the VCF INFO column. Supported tools are StringTie, Kallisto, " +
+                      "and Cufflinks. There also is a ``custom`` option to annotate with data " +
+                      "from any tab-delimited file."
+    )
 
     parser.add_argument(
         "input_vcf",
