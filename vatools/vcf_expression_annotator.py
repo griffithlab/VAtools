@@ -225,7 +225,7 @@ def main(args_input = sys.argv[1:]):
     vcf_writer.close()
 
     if missing_expressions_count > 0:
-        logging.warning("{} of {} transcripts did not have an expression entry for their {} id.".format(missing_expressions_count, entry_count, args.mode))
+        logging.warning("{} of {} {}s did not have an expression entry for their {} id.".format(missing_expressions_count, entry_count, args.mode, args.mode))
 
 if __name__ == '__main__':
     main()
