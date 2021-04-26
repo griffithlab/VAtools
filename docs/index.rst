@@ -31,7 +31,7 @@ annotate VCF files with data from other tools.
     A tool to create a tab-delimited (TSV) file of variants in a VCF and their
     VEP annotations.
 
-**ref-transcript-mistmatch-reporter**
+**ref-transcript-mismatch-reporter**
     A tool to identify variants in a VCF where the reference genome used to
     align and call variants doesn't match the Ensembl reference transcript
     used by VEP for variant consequence annotations.
