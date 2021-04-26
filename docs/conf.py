@@ -20,13 +20,13 @@
 # -- Project information -----------------------------------------------------
 
 project = 'VCF Annotation Tools (VAtools)'
-copyright = '2018, Susanna Kiwala, Chris Miller'
+copyright = '2021, Susanna Kiwala, Chris Miller'
 author = 'Susanna Kiwala, Chris Miller'
 
 # The short X.Y version
-version = '4.0'
+version = '5.0'
 # The full version, including alpha/beta/rc tags
-release = '4.1.0'
+release = '5.0.0'
 
 
 # -- General configuration ---------------------------------------------------
