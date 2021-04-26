@@ -22,6 +22,12 @@ A tool to add a new sample to an existing VCF file.
 
 A tool to create a tab-delimited (TSV) file of variants in a VCF and their VEP annotations.
 
+**ref-transcript-mistmatch-reporter**
+
+A tool to identify variants in a VCF where the reference genome used to
+align and call variants doesn't match the Ensembl reference transcript
+used by VEP for variant consequence annotations.
+
 **transform-split-values**
 
 A tool that extracts and manipulates values from existing sample fields and outputs the results to a TSV file.
