@@ -16,6 +16,8 @@ def resolve_consequence(consequence_string):
 
     if 'start_lost' in consequences:
         consequence = None
+    elif 'stop_retained_variant' in consequences:
+        consequence = None
     elif 'frameshift_variant' in consequences:
         consequence = 'FS'
     elif 'missense_variant' in consequences:
@@ -137,10 +139,18 @@ def main(args_input = sys.argv[1:]):
                             wildtype_amino_acid = wildtype_amino_acid.split('X')[0]
                     if key == 'Protein_position':
                         protein_position = value
+                        if '/' in value:
+                            protein_position = value.split('/')[0]
+                            if protein_position == '-':
+                                protein_position = value.split('/')[1]
                     if key == 'Consequence':
                         variant_type = resolve_consequence(value)
                     if key == 'Feature':
                         transcript = value
+
+                if '*' in full_wildtype_sequence:
+                    continue
+
                 if variant_type == 'missense' or variant_type == 'inframe_ins':
                     if '-' in protein_position:
                         position = int(protein_position.split('-', 1)[0]) - 1
@@ -151,6 +161,9 @@ def main(args_input = sys.argv[1:]):
                 elif variant_type == 'FS':
                     position = int(protein_position.split('-', 1)[0]) - 1
                 else:
+                    continue
+
+                if position == '-':
                     continue
 
                 if wildtype_amino_acid != '-':
