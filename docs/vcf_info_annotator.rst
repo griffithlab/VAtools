@@ -6,7 +6,7 @@ VCF's INFO column.
 
 The TSV file needs to contain three columns in the following order:
 
-- chromsome
+- chromosome
 - position
 - the value for your field at that position
 
