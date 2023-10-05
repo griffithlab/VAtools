@@ -42,7 +42,7 @@ def resolve_expression_column(args):
         return 'TPM'
     elif args.format == 'custom':
         if args.expression_column is None:
-            raise Exception("ERROR: `--id-column` option is required when using the `custom` format")
+            raise Exception("ERROR: `--expression-column` option is required when using the `custom` format")
         else:
             return args.expression_column
 

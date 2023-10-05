@@ -16,10 +16,10 @@ setup(
         ]
     },
     install_requires=[
-        'vcfpy',
+        'vcfpy==0.12.3',
         'pysam',
         'pandas',
-        'gtfparse',
+        'gtfparse==1.3.0',
         'testfixtures',
     ],
     classifiers=[
