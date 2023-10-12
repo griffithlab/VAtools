@@ -146,7 +146,10 @@ def main(args_input = sys.argv[1:]):
                     if key == 'Consequence':
                         variant_type = resolve_consequence(value)
                     if key == 'Feature':
-                        transcript = value
+                        transcript_id = value
+
+                if protein_position == '':
+                    continue
 
                 if '*' in full_wildtype_sequence:
                     continue
@@ -175,7 +178,7 @@ def main(args_input = sys.argv[1:]):
                         report_entry = {
                             'CHROM': entry.CHROM,
                             'POS': entry.POS,
-                            'Transcript': transcript,
+                            'Transcript': transcript_id,
                             'Mutation Position': protein_position,
                             'Reference Genome Wildtype Amino Acid(s)': wildtype_amino_acid,
                             'Reference Transcript Wildtype Amino Acid(s)': ref_transcript_wildtype_amino_acid,
