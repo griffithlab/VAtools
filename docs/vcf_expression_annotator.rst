@@ -22,7 +22,7 @@ file.
 
 The VCF Expression Annotator also accepts a custom tab-delimited (TSV) file input for the
 expression file. This TSV file will need to contain one column with gene or
-transcripts Ensembl IDs and one column with the expression values. This file
+transcrip Ensembl IDs and one column with the expression values. This file
 then needs to contain a header line that is used to
 identify the contents of each column. This is done via the  ``--id-column``
 and ``--expression-column`` parameters which need
