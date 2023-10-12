@@ -223,14 +223,14 @@ def main(args_input = sys.argv[1:]):
         #If we limit the annotations to only SNVs and the entry contains an InDel, skip it
         if args.variant_type == 'snv' and has_indel(entry):
             if has_snv(entry):
-                logging.warning("Running in `snv` variant type mode but VCF entry for chr {} pos {} ref {} alts {} contains both SNVs and InDels. Skipping.".format(chromsome, entry.POS, reference, alts))
+                logging.warning("Running in `snv` variant type mode but VCF entry for chr {} pos {} ref {} alts {} contains both SNVs and InDels. Skipping.".format(chromosome, entry.POS, reference, alts))
             vcf_writer.write_record(entry)
             continue
 
         #If we limit the annotations to only InDels and the entry contains a SNV, skip it
         if args.variant_type == 'indel' and has_snv(entry):
             if has_indel(entry):
-                logging.warning("Running in `indel` variant type mode but VCF entry for chr {} pos {} ref {} alts {} contains both SNVs and InDels. Skipping.".format(chromsome, entry.POS, reference, alts))
+                logging.warning("Running in `indel` variant type mode but VCF entry for chr {} pos {} ref {} alts {} contains both SNVs and InDels. Skipping.".format(chromosome, entry.POS, reference, alts))
             vcf_writer.write_record(entry)
             continue
 
