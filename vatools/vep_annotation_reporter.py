@@ -8,6 +8,7 @@ import vcfpy
 import tempfile
 import csv
 import binascii
+import logging
 
 def define_parser():
     parser = argparse.ArgumentParser(
@@ -99,13 +100,18 @@ def resolve_alleles(entry, csq_alleles):
     return alleles
 
 def transcript_for_alt(transcripts, alt):
+    no_pick_value = False
     for transcript in transcripts[alt]:
         if 'PICK' in transcript and transcript['PICK'] == '1':
-            return transcript
+            return transcript, no_pick_value
+
+    if 'PICK' in transcripts[alt][0]:
+        no_pick_value = True
+
     merged_transcripts = {}
     for key in transcripts[alt][0].keys():
         merged_transcripts[key] = ",".join([transcript[key] for transcript in transcripts[alt]])
-    return merged_transcripts
+    return merged_transcripts, no_pick_value
 
 def decode_hex(match_string):
     hex_string = match_string.group(0).replace('%', '')
@@ -142,7 +148,10 @@ def extract_vep_fields(args):
             alt = alt.serialize()
             if alt not in vep[chr][pos][ref]:
                 if alleles_dict[alt] in transcripts:
-                    vep[chr][pos][ref][alt] = transcript_for_alt(transcripts, alleles_dict[alt])
+                    values, no_pick_value = transcript_for_alt(transcripts, alleles_dict[alt])
+                    if no_pick_value:
+                        logging.warning("VCF is annotated with the PICK flag but no PICK'ed transcript found for variant {} {} {} {}. Writing values for all transcripts.".format(chr, pos, ref, alt))
+                    vep[chr][pos][ref][alt] = values
                 else:
                     vep[chr][pos][ref][alt] = None
             else:
