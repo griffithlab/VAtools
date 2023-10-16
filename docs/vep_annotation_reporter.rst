@@ -19,7 +19,10 @@ values. This is the default behavior unless VEP was run with
 one of the ``--flag_pick`` options, all possible transcript consequences will be
 reported by VEP but only one of these consequences will be picked by VEP as the
 "best" consequence. This is denoted in the ``PICK`` field. If this field is
-available, then the values for that transcript will be reported.
+available, then the values for that transcript will be reported. For some
+variants, VCFs annotated with the ``PICK`` field might not report any of the
+consequences as picked. In that case, the values for all transcript consequences are
+reported.
 
 VEP annotations can also be added to an existing TSV with variant
 information by using the ``--input-tsv`` option. In order to match

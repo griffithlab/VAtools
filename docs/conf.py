@@ -24,9 +24,9 @@ copyright = '2021, Susanna Kiwala, Chris Miller'
 author = 'Susanna Kiwala, Chris Miller'
 
 # The short X.Y version
-version = '5.0'
+version = '5.1'
 # The full version, including alpha/beta/rc tags
-release = '5.0.1'
+release = '5.1.0'
 
 
 # -- General configuration ---------------------------------------------------

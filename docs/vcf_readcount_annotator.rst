@@ -7,11 +7,13 @@ and add its data to your VCF. It supports both DNA and RNA readcounts.
 
 DNA readcounts are identified by specifying ``DNA`` in the list of
 positional arguments. Depth, allele counts, and VAFs are then written to the
-DP, AD, and AF fields, respectively.
+DP, AD, and AF fields, respectively. Forward and reverse strand allele counts
+are written in the ADF and ADR fields, respectively.
 
 RNA readcounts are identified by specifying ``RNA`` in the list of positional
 arguments. Depth, allele counts, and VAFs are then written tot he RDP, RAD,
-and RAF fields, respectively.
+and RAF fields, respectively. Forward and reverse strand allele counts
+are written in the RADF and RADR fields, respectively.
 
 If your VCF is a multi-sample VCF, you have to pick one of the sample in
 your VCF by setting the ``--sample-name`` option. This is the sample that the
