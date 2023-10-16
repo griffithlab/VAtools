@@ -12,7 +12,7 @@ def resolve_id_column(args):
         return 'tracking_id'
     elif args.format == 'kallisto':
         if args.mode == 'gene':
-            return 'gene_name'
+            return 'gene'
         elif args.mode == 'transcript':
             return 'target_id'
     elif args.format == 'stringtie':
@@ -156,7 +156,7 @@ def define_parser():
     )
     parser.add_argument(
         "-i", "--id-column",
-        help="The column header in the expression_file for the column containing gene names/transcript ids. Required when using the `custom` format."
+        help="The column header in the expression_file for the column containing gene/transcript ids. Required when using the `custom` format."
     )
     parser.add_argument(
         "-e", "--expression-column",
@@ -210,12 +210,8 @@ def main(args_input = sys.argv[1:]):
             for key, value in zip(csq_format, transcript.split('|')):
                 if key == 'Feature' and value != '' and not value.startswith('ENSR'):
                     transcript_ids.add(value)
-                if args.format == 'kallisto':
-                    if key == 'SYMBOL' and value != '':
-                        genes.add(value)
-                else:
-                    if key == 'Gene' and value != '':
-                        genes.add(value)
+                if key == 'Gene' and value != '':
+                    genes.add(value)
 
         if args.mode == 'gene':
             genes = list(genes)

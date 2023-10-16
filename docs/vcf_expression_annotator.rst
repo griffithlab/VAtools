@@ -22,16 +22,17 @@ file.
 
 The VCF Expression Annotator also accepts a custom tab-delimited (TSV) file input for the
 expression file. This TSV file will need to contain one column with gene or
-transcripts identifiers and one column with the expression values. This file
+transcrip Ensembl IDs and one column with the expression values. This file
 then needs to contain a header line that is used to
 identify the contents of each column. This is done via the  ``--id-column``
 and ``--expression-column`` parameters which need
 to match the gene/transcript identifier and expression value column headers.
 In order to use this option the expression file format option will need to be
-set to ``custom``.
+set to ``custom``. Please note that when running in ``gene`` mode, the ID
+column will need to contain Ensembl Gene IDs, not gene names.
 
 By default the output VCF will be written to a ``.tx.vcf`` or ``.gx.vcf`` file next to
-your input VCF file. You can set a different output file using the
+your input VCF file. You can set a different output file name using the
 ``--output-vcf`` parameter.
 
 Usage
