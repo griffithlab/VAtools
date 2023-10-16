@@ -68,3 +68,15 @@ class RefTranscriptMismatchReporterTests(unittest.TestCase):
         ref_transcript_mismatch_reporter.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.hard.filtered.vcf'), os.path.join(temp_path.name, 'input.filtered.vcf')))
         temp_path.cleanup()
+
+    def test_no_protein_position_filter(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.no_protein_pos.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            "-f",
+            "hard"
+        ]
+        ref_transcript_mismatch_reporter.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.no_protein_pos.filtered.vcf'), os.path.join(temp_path.name, 'input.filtered.vcf')))
+        temp_path.cleanup()
