@@ -15,8 +15,6 @@
 ##FILTER=<ID=indelError,Description="Likely artifact due to indel reads at this position">
 ##FILTER=<ID=str10,Description="Less than 10% or more than 90% of variant supporting reads on one strand">
 ##FORMAT=<ID=ABQ,Number=1,Type=Integer,Description="Average quality of variant-supporting bases (qual2)">
-##FORMAT=<ID=ADF,Number=1,Type=Integer,Description="Depth of variant-supporting bases on forward strand (reads2plus)">
-##FORMAT=<ID=ADR,Number=1,Type=Integer,Description="Depth of variant-supporting bases on reverse strand (reads2minus)">
 ##FORMAT=<ID=FREQ,Number=1,Type=String,Description="Variant allele frequency">
 ##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
@@ -55,6 +53,8 @@
 ##source=SelectVariants
 ##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth">
 ##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=ADF,Number=R,Type=Integer,Description="Allelic depths on the forward strand (high-quality bases)">
+##FORMAT=<ID=ADR,Number=R,Type=Integer,Description="Allelic depths on the reverse strand (high-quality bases)">
 ##FORMAT=<ID=AF,Number=A,Type=Float,Description="Variant-allele frequency for the alt alleles">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	test_duplicates_sample
 chr16	78108410	.	TG	T	.	PASS	AC=1;ADP=280;AF=0.5;AN=2;HET=1;HOM=0;NC=0;WT=0;set=varscan	GT:ABQ:AD:ADF:ADR:DP:FREQ:GQ:PVAL:RBQ:RD:RDF:RDR:SDP	0/1:50:97:79:18:334:48.74%25:0:9.8E-1:48:102:82:20:280

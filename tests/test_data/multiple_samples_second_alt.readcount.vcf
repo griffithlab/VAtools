@@ -80,6 +80,8 @@
 ##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence type as predicted by VEP. Format: Allele|Gene|Feature|Feature_type|Consequence|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons|Existing_variation|MOTIF_NAME|MOTIF_POS|HIGH_INF_POS|MOTIF_SCORE_CHANGE|DISTANCE|STRAND|CANONICAL|SYMBOL|SYMBOL_SOURCE|SIFT|PolyPhen|HGVSc|HGVSp|DownstreamProtein|ProteinLengthChange|WildtypeProtein">
 ##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth">
 ##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=ADF,Number=R,Type=Integer,Description="Allelic depths on the forward strand (high-quality bases)">
+##FORMAT=<ID=ADR,Number=R,Type=Integer,Description="Allelic depths on the reverse strand (high-quality bases)">
 ##FORMAT=<ID=AF,Number=A,Type=Float,Description="Variant-allele frequency for the alt alleles">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	H_NJ-HCC1395-HCC1395	H_NJ-HCC1395-HCC1396
-22	16202096	.	C	A,T	.	.	CSQ=A|ENSG00000225255|ENST00000453395|Transcript|intron_variant&nc_transcript_variant||||||||||||-1|YES|LA16c-83F12.6|Clone_based_vega_gene|||ENST00000453395.1%3An.337-2143G>T||||	GT:BQ:SS:FDP:SDP:SUBDP:AU:CU:GU:TU:FT:FA:TLOD:GQ:MQ:DP4:DP:AF:AD	0/1:.:2:0:0:0:4,4:12,12:2,2:0,0:PASS:0.25:11.1126:46:47:6,4,5,1:16:0.375,0.0:10,6,0	0/2:.:2:0:0:0:4,4:12,12:2,2:0,0:PASS:0.25:11.1126:46:47:6,4,5,1:16:0.37500,0.00000:10,6,0
+22	16202096	.	C	A,T	.	.	CSQ=A|ENSG00000225255|ENST00000453395|Transcript|intron_variant&nc_transcript_variant||||||||||||-1|YES|LA16c-83F12.6|Clone_based_vega_gene|||ENST00000453395.1%3An.337-2143G>T||||	GT:BQ:SS:FDP:SDP:SUBDP:AU:CU:GU:TU:FT:FA:TLOD:GQ:MQ:DP4:DP:AF:AD:ADF:ADR	0/1:.:2:0:0:0:4,4:12,12:2,2:0,0:PASS:0.25:11.1126:46:47:6,4,5,1:16:0.375,0.0:10,6,0:6,5,0:4,1,0	0/2:.:2:0:0:0:4,4:12,12:2,2:0,0:PASS:0.25:11.1126:46:47:6,4,5,1:16:0.37500,0.00000:10,6,0:6,5,0:4,1,0

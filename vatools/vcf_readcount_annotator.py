@@ -46,11 +46,15 @@ def define_parser():
     return parser
 
 def parse_brct_field(brcts):
-    parsed_brct = {}
+    counts = {}
+    forward_counts = {}
+    reverse_counts = {}
     for brct in brcts:
-        (base, count, rest) = brct.split(':', 2)
-        parsed_brct[base.upper()] = count
-    return parsed_brct
+        (base, count, avg_mapping_quality, avg_basequality, avg_se_mapping_quality, num_plus_strand, num_minus_strand, rest) = brct.split(':', 7)
+        counts[base.upper()] = count
+        forward_counts[base.upper()] = num_plus_strand
+        reverse_counts[base.upper()] = num_minus_strand
+    return counts, forward_counts, reverse_counts
 
 def parse_bam_readcount_file(args):
     coverage = {}
@@ -62,8 +66,13 @@ def parse_bam_readcount_file(args):
             reference_base = row[2].upper()
             depth          = row[3]
             brct           = row[4:]
-            parsed_brct = parse_brct_field(brct)
-            parsed_brct['depth'] = depth
+            counts, forward_counts, reverse_counts = parse_brct_field(brct)
+            parsed_brct = {
+                'counts': counts,
+                'forward_counts': forward_counts,
+                'reverse_counts': reverse_counts,
+                'depth': depth
+            }
             if (chromosome, position, reference_base) in coverage and parsed_brct != coverage[(chromosome,position,reference_base)]:
                 prev_brct = coverage[(chromosome, position, reference_base)]
                 if prev_brct["depth"] == depth:
@@ -167,17 +176,21 @@ def create_vcf_writer(args, vcf_reader):
     new_header = vcfpy.Header(samples = vcf_reader.header.samples)
     if args.data_type == 'DNA':
         for line in vcf_reader.header.lines:
-            if not (line.key == 'FORMAT' and line.id in ['DP', 'AD', 'AF']):
+            if not (line.key == 'FORMAT' and line.id in ['DP', 'AD', 'ADF', 'ADR','AF']):
                 new_header.add_line(line)
         new_header.add_format_line(OrderedDict([('ID', 'DP'), ('Number', '1'), ('Type', 'Integer'), ('Description', 'Read depth')]))
         new_header.add_format_line(OrderedDict([('ID', 'AD'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'Allelic depths for the ref and alt alleles in the order listed')]))
+        new_header.add_format_line(OrderedDict([('ID', 'ADF'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'Allelic depths on the forward strand (high-quality bases)')]))
+        new_header.add_format_line(OrderedDict([('ID', 'ADR'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'Allelic depths on the reverse strand (high-quality bases)')]))
         new_header.add_format_line(OrderedDict([('ID', 'AF'), ('Number', 'A'), ('Type', 'Float'), ('Description', 'Variant-allele frequency for the alt alleles')]))
     if args.data_type == 'RNA':
         for line in vcf_reader.header.lines:
-            if not (line.key == 'FORMAT' and line.id in ['RDP', 'RAD', 'RAF']):
+            if not (line.key == 'FORMAT' and line.id in ['RDP', 'RAD', 'RADF', 'RADR', 'RAF']):
                 new_header.add_line(line)
         new_header.add_format_line(OrderedDict([('ID', 'RDP'), ('Number', '1'), ('Type', 'Integer'), ('Description', 'RNA Read depth')]))
         new_header.add_format_line(OrderedDict([('ID', 'RAD'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'RNA Allelic depths for the ref and alt alleles in the order listed')]))
+        new_header.add_format_line(OrderedDict([('ID', 'RADF'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'RNA Allelic depths on the forward strand (high-quality bases)')]))
+        new_header.add_format_line(OrderedDict([('ID', 'RADR'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'RNA Allelic depths on the reverse strand (high-quality bases)')]))
         new_header.add_format_line(OrderedDict([('ID', 'RAF'), ('Number', 'A'), ('Type', 'Float'), ('Description', 'RNA Variant-allele frequency for the alt alleles')]))
     return vcfpy.Writer.from_path(output_file, new_header)
 
@@ -197,10 +210,14 @@ def main(args_input = sys.argv[1:]):
     if args.data_type == 'DNA':
         depth_field = 'DP'
         count_field = 'AD'
+        forward_count_field = 'ADF'
+        reverse_count_field = 'ADR'
         frequency_field = 'AF'
     elif args.data_type == 'RNA':
         depth_field = 'RDP'
         count_field = 'RAD'
+        forward_count_field = 'RADF'
+        reverse_count_field = 'RADR'
         frequency_field = 'RAF'
 
     for entry in vcf_reader:
@@ -216,7 +233,7 @@ def main(args_input = sys.argv[1:]):
         #from a single number to an array or else the writer will throw an error
         for sample in vcf_reader.header.samples.names:
             sample_data = entry.call_for_sample[sample].data
-            for field in [count_field, frequency_field]:
+            for field in [count_field, forward_count_field, reverse_count_field, frequency_field]:
                 if field in sample_data and (not isinstance(sample_data[field], list)):
                     sample_data[field] = [sample_data[field]]
 
@@ -267,7 +284,7 @@ def main(args_input = sys.argv[1:]):
         write_depth(entry, sample_name, depth_field, depth)
 
         #If `depth` is the only key in this hash, then this must have
-        #been a duplicate bam-readcoutn entry where only the depths matched.
+        #been a duplicate bam-readcount entry where only the depths matched.
         #The only field to write is depth; frequency and count fields should not be written.
         if len(brct.keys()) == 1 and list(brct.keys())[0] == 'depth':
             vcf_writer.write_record(entry)
@@ -282,35 +299,36 @@ def main(args_input = sys.argv[1:]):
             (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alt, entry.POS)
             brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
             if brct is not None:
-                if var_base not in brct:
+                if var_base not in brct['counts']:
                     print("Warning: variant base {} is not present in the bam-readcount entry for variant {} {}. This might indicate that the bam-readcount file doesn't match the VCF.".format(var_base, chromosome, start))
                     vafs.append(0)
                 else:
-                    vafs.append(calculate_vaf(int(brct[var_base]), depth))
+                    vafs.append(calculate_vaf(int(brct['counts'][var_base]), depth))
             else:
                 vafs.append(0)
         entry.call_for_sample[sample_name].data[frequency_field] = vafs
 
-        #AD - ref, var1..varN counts
-        if count_field not in entry.FORMAT:
-            entry.FORMAT += [count_field]
-        (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alts[0].serialize(), entry.POS)
-        brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
-        ads = []
-        ads.append(brct[ref_base])
-        for alt in alts:
-            alt = alt.serialize()
-            (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alt, entry.POS)
+        #AD/ADF/ADR - ref, var1..varN counts
+        for (field_name, value_name) in zip([count_field, forward_count_field, reverse_count_field], ['counts', 'forward_counts', 'reverse_counts']):
+            if field_name not in entry.FORMAT:
+                entry.FORMAT += [field_name]
+            (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alts[0].serialize(), entry.POS)
             brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
-            if brct is not None:
-                if var_base not in brct:
-                    print("Warning: variant base {} is not present in the bam-readcount entry for variant {} {}. This might indicate that the bam-readcount file doesn't match the VCF.".format(var_base, chromosome, start))
-                    ads.append(0)
+            ads = []
+            ads.append(brct[value_name][ref_base])
+            for alt in alts:
+                alt = alt.serialize()
+                (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alt, entry.POS)
+                brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
+                if brct is not None:
+                    if var_base not in brct[value_name]:
+                        print("Warning: variant base {} is not present in the bam-readcount entry for variant {} {}. This might indicate that the bam-readcount file doesn't match the VCF.".format(var_base, chromosome, start))
+                        ads.append(0)
+                    else:
+                        ads.append(brct[value_name][var_base])
                 else:
-                    ads.append(brct[var_base])
-            else:
-                ads.append(0)
-        entry.call_for_sample[sample_name].data[count_field] = ads
+                    ads.append(0)
+            entry.call_for_sample[sample_name].data[field_name] = ads
 
         vcf_writer.write_record(entry)
 
