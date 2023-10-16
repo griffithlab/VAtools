@@ -155,7 +155,7 @@ def extract_vep_fields(args):
                 else:
                     vep[chr][pos][ref][alt] = None
             else:
-                sys.exit("VEP entry for at CHR %s, POS %s, REF %s , ALT % already exists" % (chr, pos, ref, alt) )
+                logging.warning("VEP entry at CHR %s, POS %s, REF %s , ALT %s already exists. Skipping subsequent entries." % (chr, pos, ref, alt) )
     vcf_reader.close()
     return vep
 
@@ -201,6 +201,7 @@ def main(args_input = sys.argv[1:]):
         with open(output_file, 'w') as output_filehandle:
             writer = csv.DictWriter(output_filehandle, fieldnames = ['CHROM', 'POS', 'REF', 'ALT'] + args.vep_fields, delimiter = "\t")
             writer.writeheader()
+            rows = []
             for variant in vcf_reader:
                 row = {
                     'CHROM': str(variant.CHROM),
@@ -209,7 +210,9 @@ def main(args_input = sys.argv[1:]):
                     'ALT'  : ','.join(map(lambda a: a.serialize(), variant.ALT)),
                 }
                 row = add_vep_fields_to_row(args, row, vep)
-                writer.writerow(row)
+                if row not in rows:
+                    rows.append(row)
+            writer.writerows(rows)
 
 if __name__ == '__main__':
     main()
