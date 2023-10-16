@@ -120,3 +120,17 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         vep_annotation_reporter.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.merge_multiple_transcripts.tsv'), os.path.join(temp_path.name, 'input.tsv')))
         temp_path.cleanup()
+
+    def test_vcf_with_multiple_transcripts_and_pick_set_for_none(self):
+        logging.disable(logging.NOTSET)
+        with LogCapture() as l:
+            temp_path = tempfile.TemporaryDirectory()
+            os.symlink(os.path.join(self.test_data_dir, 'input.no_pick_value.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
+            command = [
+                os.path.join(temp_path.name, 'input.vcf.gz'),
+                'SYMBOL',
+            ]
+            vep_annotation_reporter.main(command)
+            self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.no_pick_value.tsv'), os.path.join(temp_path.name, 'input.tsv')))
+            temp_path.cleanup()
+            l.check_present(('root', 'WARNING', "VCF is annotated with the PICK flag but no PICK'ed transcript found for variant chr17 7675088 C T. Writing values for all transcripts."))
