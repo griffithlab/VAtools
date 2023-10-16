@@ -202,18 +202,22 @@ def main(args_input = sys.argv[1:]):
     if args.filter is not None:
         vcf_writer.close()
 
+    processable_variant_percentage = "N/A" if processable_variant_count == 0 else round(float(filtered_variant_count)/float(processable_variant_count)*100, 2)
+    variant_percentage = "N/A" if variant_count == 0 else round(float(filtered_variant_count)/float(variant_count)*100, 2)
+    processable_transcript_percentage = "N/A" if processable_transcript_count == 0 else round(float(filtered_transcript_count)/float(processable_transcript_count)*100, 2)
+    transcript_percentage = "N/A" if transcript_count == 0 else round(float(filtered_transcript_count)/float(transcript_count)*100, 2)
     logging.info(
         "\nTotal number of variants: {}\n".format(variant_count) +
         "Total number of processable variants (at least one missense, inframe indels, or frameshift transcript): {}\n".format(processable_variant_count) +
         "Total number of variants with mismatched annotations: {}\n".format(filtered_variant_count) +
-        "Percentage of processable variants with mismatched annotations: {}%\n".format(round(float(filtered_variant_count)/float(processable_variant_count)*100, 2)) +
-        "Percentage of variants with mismatched annotations: {}%\n".format(round(float(filtered_variant_count)/float(variant_count)*100, 2)) +
+        "Percentage of processable variants with mismatched annotations: {}%\n".format(processable_variant_percentage) +
+        "Percentage of variants with mismatched annotations: {}%\n".format(variant_percentage) +
         "\n" +
         "Total number of transcripts: {}\n".format(transcript_count) +
         "Total number of processable transcripts (missense, inframe indels, frameshifts): {}\n".format(processable_transcript_count) +
         "Total number of transcripts with mismatched annotations: {}\n".format(filtered_transcript_count) +
-        "Percentage of processable transcripts with mismatched annotations: {}%\n".format(round(float(filtered_transcript_count)/float(processable_transcript_count)*100, 2)) +
-        "Percentage of all transcripts with mismatched annotations: {}%\n".format(round(float(filtered_transcript_count)/float(transcript_count)*100, 2))
+        "Percentage of processable transcripts with mismatched annotations: {}%\n".format(processable_transcript_percentage) +
+        "Percentage of all transcripts with mismatched annotations: {}%\n".format(transcript_percentage)
     )
 
 if __name__ == '__main__':
