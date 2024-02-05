@@ -6,7 +6,7 @@ import csv
 from collections import OrderedDict
 import logging
 
-def resolve_consequence(consequence_string):
+def resolve_consequence(consequence_string, allele):
     if '&' in consequence_string:
         consequences = {consequence.lower() for consequence in consequence_string.split('&')}
     elif '.' in consequence_string:
@@ -26,14 +26,17 @@ def resolve_consequence(consequence_string):
         consequence = 'inframe_ins'
     elif 'inframe_deletion' in consequences:
         consequence = 'inframe_del'
-    #TODO add support for protein_altering_variant
-    #elif 'protein_altering_variant' in consequences:
-    #    if len(ref) > len(alt) and (len(ref) - len(alt)) % 3 == 0:
-    #        consequence = 'inframe_del'
-    #    elif len(alt) > len(ref) and (len(alt) - len(ref)) % 3 == 0:
-    #        consequence = 'inframe_ins'
-    #    else:
-    #        consequence = None
+    elif 'protein_altering_variant' in consequences:
+        if '-' in allele:
+            allele = allele.replace('-', '')
+            if len(allele) % 3 == 0:
+                consequence = 'inframe_del'
+            else:
+                consequence = None
+        elif len(allele) % 3 == 0:
+            consequence = 'inframe_ins'
+        else:
+            consequence = None
     else:
         consequence = None
     return consequence
@@ -129,6 +132,8 @@ def main(args_input = sys.argv[1:]):
             for transcript in entry.INFO['CSQ']:
                 transcript_count += 1
                 for key, value in zip(csq_format, transcript.split('|')):
+                    if key == 'Allele':
+                        allele = value
                     if key == 'WildtypeProtein':
                         full_wildtype_sequence = value
                     if key == 'Amino_acids':
@@ -144,7 +149,7 @@ def main(args_input = sys.argv[1:]):
                             if protein_position == '-':
                                 protein_position = value.split('/')[1]
                     if key == 'Consequence':
-                        variant_type = resolve_consequence(value)
+                        variant_type = resolve_consequence(value, allele)
                     if key == 'Feature':
                         transcript_id = value
 
