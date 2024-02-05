@@ -1,0 +1,148 @@
+##fileformat=VCFv4.2
+##FILTER=<ID=PASS,Description="All filters passed">
+##FILTER=<ID=FAIL,Description="Fail the site if all alleles fail but for different reasons.">
+##FILTER=<ID=base_qual,Description="alt median base quality">
+##FILTER=<ID=clustered_events,Description="Clustered events observed in the tumor">
+##FILTER=<ID=contamination,Description="contamination">
+##FILTER=<ID=duplicate,Description="evidence for alt allele is overrepresented by apparent duplicates">
+##FILTER=<ID=fragment,Description="abs(ref - alt) median fragment length">
+##FILTER=<ID=germline,Description="Evidence indicates this site is germline, not somatic">
+##FILTER=<ID=haplotype,Description="Variant near filtered variant on same haplotype.">
+##FILTER=<ID=low_allele_frac,Description="Allele fraction is below specified threshold">
+##FILTER=<ID=map_qual,Description="ref - alt median mapping quality">
+##FILTER=<ID=multiallelic,Description="Site filtered because too many alt alleles pass tumor LOD">
+##FILTER=<ID=n_ratio,Description="Ratio of N to alt exceeds specified ratio">
+##FILTER=<ID=normal_artifact,Description="artifact_in_normal">
+##FILTER=<ID=orientation,Description="Orientation bias detected by the orientation bias mixture model">
+##FILTER=<ID=panel_of_normals,Description="Blacklisted site in panel of normals">
+##FILTER=<ID=position,Description="median distance of alt variants from end of reads">
+##FILTER=<ID=slippage,Description="Variant near filtered variant on same haplotype.">
+##FILTER=<ID=strand_bias,Description="Evidence for alt allele comes from one read direction only">
+##FILTER=<ID=strict_strand,Description="Evidence for alt allele is not represented in both directions">
+##FILTER=<ID=weak_evidence,Description="Mutation does not meet likelihood threshold">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=AF,Number=A,Type=Float,Description="Allele fractions of alternate alleles in the tumor">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth (reads with MQ=255 or with bad mates are filtered)">
+##FORMAT=<ID=F1R2,Number=R,Type=Integer,Description="Count of reads in F1R2 pair orientation supporting each allele">
+##FORMAT=<ID=F2R1,Number=R,Type=Integer,Description="Count of reads in F2R1 pair orientation supporting each allele">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=PGT,Number=1,Type=String,Description="Physical phasing haplotype information, describing how the alternate alleles are phased in relation to one another">
+##FORMAT=<ID=PID,Number=1,Type=String,Description="Physical phasing ID information, where each unique ID within a given sample (but not across samples) connects records within a phasing group">
+##FORMAT=<ID=PS,Number=1,Type=Integer,Description="Phasing set (typically the position of the first variant in the set)">
+##FORMAT=<ID=SB,Number=4,Type=Integer,Description="Per-sample component statistics which comprise the Fisher's Exact Test to detect strand bias.">
+##INFO=<ID=AS_FilterStatus,Number=1,Type=String,Description="Filter status for each allele, as assessed by ApplyRecalibration. Note that the VCF filter field will reflect the most lenient/sensitive status across all alleles.">
+##INFO=<ID=AS_SB_TABLE,Number=1,Type=String,Description="Allele-specific forward/reverse read counts for strand bias tests. Includes the reference and alleles separated by |.">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth; some reads may have been filtered">
+##INFO=<ID=ECNT,Number=1,Type=Integer,Description="Number of events in this haplotype">
+##INFO=<ID=GERMQ,Number=1,Type=Integer,Description="Phred-scaled quality that alt alleles are not germline variants">
+##INFO=<ID=MBQ,Number=R,Type=Integer,Description="median base quality">
+##INFO=<ID=MFRL,Number=R,Type=Integer,Description="median fragment length">
+##INFO=<ID=MMQ,Number=R,Type=Integer,Description="median mapping quality">
+##INFO=<ID=MPOS,Number=A,Type=Integer,Description="median distance from end of read">
+##INFO=<ID=NALOD,Number=A,Type=Float,Description="Negative log 10 odds of artifact in normal with same allele fraction as tumor">
+##INFO=<ID=NLOD,Number=A,Type=Float,Description="Normal log 10 likelihood ratio of diploid het or hom alt genotypes">
+##INFO=<ID=PON,Number=0,Type=Flag,Description="site found in panel of normals">
+##INFO=<ID=POPAF,Number=A,Type=Float,Description="negative log 10 population allele frequencies of alt alleles">
+##INFO=<ID=ROQ,Number=1,Type=Float,Description="Phred-scaled qualities that alt allele are not due to read orientation artifact">
+##INFO=<ID=RPA,Number=R,Type=Integer,Description="Number of times tandem repeat unit is repeated, for each allele (including reference)">
+##INFO=<ID=RU,Number=1,Type=String,Description="Tandem repeat unit (bases)">
+##INFO=<ID=STR,Number=0,Type=Flag,Description="Variant is a short tandem repeat">
+##INFO=<ID=STRQ,Number=1,Type=Integer,Description="Phred-scaled quality that alt alleles in STRs are not polymerase slippage errors">
+##INFO=<ID=TLOD,Number=A,Type=Float,Description="Log 10 likelihood ratio score of variant existing versus not existing">
+##SentieonCommandLine.TNfilter=<ID=TNfilter,Version="sentieon-genomics-202112.05",Date="2024-01-31T08:17:32Z",CommandLine="/sga_dev/zb-liaowanjun/sentieon-genomics-202112.05/libexec/driver -r /data2/data_share/pzx/reference/hs37d5/hs37d5.fa --algo TNfilter --tumor_sample T-4032 --normal_sample PB-4032 -v /sga_dev/zb-liaowanjun/sample36_joint/T-4032_PB-4032/matched_tmp/T-4032_jointTMP.vcf /sga_dev/zb-liaowanjun/sample36_joint/T-4032_PB-4032/matched_tmp/T-4032_jointunfiltered.vcf">
+##SentieonCommandLine.TNhaplotyper2=<ID=TNhaplotyper2,Version="sentieon-genomics-202112.05",Date="2024-01-31T06:48:28Z",CommandLine="/sga_dev/zb-liaowanjun/sentieon-genomics-202112.05/libexec/driver -t 15 -r /data2/data_share/pzx/reference/hs37d5/hs37d5.fa -i /data2/dev_projects/xmy/TNB/validation_data/test1/PRJNA298330/T-4032/realigned/T-4032_final.bam -i /data2/dev_projects/xmy/TNB/validation_data/test1/PRJNA298330/PB-4032/realigned/PB-4032_final.bam --interval /sga_dev/panel_validation/V710_panel/bed/sort_KST700_v3_pd100_merged.bed --algo TNhaplotyper2 --call_germline_sites --min_init_tumor_lod 0 --min_tumor_lod 0.5 --prune_factor -1 --min_normal_lod 0 --tumor_sample T-4032 --normal_sample PB-4032 /sga_dev/zb-liaowanjun/sample36_joint/T-4032_PB-4032/matched_tmp/T-4032_jointTMP.vcf">
+##contig=<ID=chr1,length=249250621,assembly=b37>
+##contig=<ID=chr2,length=243199373,assembly=b37>
+##contig=<ID=chr3,length=198022430,assembly=b37>
+##contig=<ID=chr4,length=191154276,assembly=b37>
+##contig=<ID=chr5,length=180915260,assembly=b37>
+##contig=<ID=chr6,length=171115067,assembly=b37>
+##contig=<ID=chr7,length=159138663,assembly=b37>
+##contig=<ID=chr8,length=146364022,assembly=b37>
+##contig=<ID=chr9,length=141213431,assembly=b37>
+##contig=<ID=chr10,length=135534747,assembly=b37>
+##contig=<ID=chr11,length=135006516,assembly=b37>
+##contig=<ID=chr12,length=133851895,assembly=b37>
+##contig=<ID=chr13,length=115169878,assembly=b37>
+##contig=<ID=chr14,length=107349540,assembly=b37>
+##contig=<ID=chr15,length=102531392,assembly=b37>
+##contig=<ID=chr16,length=90354753,assembly=b37>
+##contig=<ID=chr17,length=81195210,assembly=b37>
+##contig=<ID=chr18,length=78077248,assembly=b37>
+##contig=<ID=chr19,length=59128983,assembly=b37>
+##contig=<ID=chr20,length=63025520,assembly=b37>
+##contig=<ID=chr21,length=48129895,assembly=b37>
+##contig=<ID=chr22,length=51304566,assembly=b37>
+##contig=<ID=chrX,length=155270560,assembly=b37>
+##contig=<ID=chrY,length=59373566,assembly=b37>
+##contig=<ID=chrM,length=16569,assembly=b37>
+##contig=<ID=GL000207.1,length=4262,assembly=b37>
+##contig=<ID=GL000226.1,length=15008,assembly=b37>
+##contig=<ID=GL000229.1,length=19913,assembly=b37>
+##contig=<ID=GL000231.1,length=27386,assembly=b37>
+##contig=<ID=GL000210.1,length=27682,assembly=b37>
+##contig=<ID=GL000239.1,length=33824,assembly=b37>
+##contig=<ID=GL000235.1,length=34474,assembly=b37>
+##contig=<ID=GL000201.1,length=36148,assembly=b37>
+##contig=<ID=GL000247.1,length=36422,assembly=b37>
+##contig=<ID=GL000245.1,length=36651,assembly=b37>
+##contig=<ID=GL000197.1,length=37175,assembly=b37>
+##contig=<ID=GL000203.1,length=37498,assembly=b37>
+##contig=<ID=GL000246.1,length=38154,assembly=b37>
+##contig=<ID=GL000249.1,length=38502,assembly=b37>
+##contig=<ID=GL000196.1,length=38914,assembly=b37>
+##contig=<ID=GL000248.1,length=39786,assembly=b37>
+##contig=<ID=GL000244.1,length=39929,assembly=b37>
+##contig=<ID=GL000238.1,length=39939,assembly=b37>
+##contig=<ID=GL000202.1,length=40103,assembly=b37>
+##contig=<ID=GL000234.1,length=40531,assembly=b37>
+##contig=<ID=GL000232.1,length=40652,assembly=b37>
+##contig=<ID=GL000206.1,length=41001,assembly=b37>
+##contig=<ID=GL000240.1,length=41933,assembly=b37>
+##contig=<ID=GL000236.1,length=41934,assembly=b37>
+##contig=<ID=GL000241.1,length=42152,assembly=b37>
+##contig=<ID=GL000243.1,length=43341,assembly=b37>
+##contig=<ID=GL000242.1,length=43523,assembly=b37>
+##contig=<ID=GL000230.1,length=43691,assembly=b37>
+##contig=<ID=GL000237.1,length=45867,assembly=b37>
+##contig=<ID=GL000233.1,length=45941,assembly=b37>
+##contig=<ID=GL000204.1,length=81310,assembly=b37>
+##contig=<ID=GL000198.1,length=90085,assembly=b37>
+##contig=<ID=GL000208.1,length=92689,assembly=b37>
+##contig=<ID=GL000191.1,length=106433,assembly=b37>
+##contig=<ID=GL000227.1,length=128374,assembly=b37>
+##contig=<ID=GL000228.1,length=129120,assembly=b37>
+##contig=<ID=GL000214.1,length=137718,assembly=b37>
+##contig=<ID=GL000221.1,length=155397,assembly=b37>
+##contig=<ID=GL000209.1,length=159169,assembly=b37>
+##contig=<ID=GL000218.1,length=161147,assembly=b37>
+##contig=<ID=GL000220.1,length=161802,assembly=b37>
+##contig=<ID=GL000213.1,length=164239,assembly=b37>
+##contig=<ID=GL000211.1,length=166566,assembly=b37>
+##contig=<ID=GL000199.1,length=169874,assembly=b37>
+##contig=<ID=GL000217.1,length=172149,assembly=b37>
+##contig=<ID=GL000216.1,length=172294,assembly=b37>
+##contig=<ID=GL000215.1,length=172545,assembly=b37>
+##contig=<ID=GL000205.1,length=174588,assembly=b37>
+##contig=<ID=GL000219.1,length=179198,assembly=b37>
+##contig=<ID=GL000224.1,length=179693,assembly=b37>
+##contig=<ID=GL000223.1,length=180455,assembly=b37>
+##contig=<ID=GL000195.1,length=182896,assembly=b37>
+##contig=<ID=GL000212.1,length=186858,assembly=b37>
+##contig=<ID=GL000222.1,length=186861,assembly=b37>
+##contig=<ID=GL000200.1,length=187035,assembly=b37>
+##contig=<ID=GL000193.1,length=189789,assembly=b37>
+##contig=<ID=GL000194.1,length=191469,assembly=b37>
+##contig=<ID=GL000225.1,length=211173,assembly=b37>
+##contig=<ID=GL000192.1,length=547496,assembly=b37>
+##contig=<ID=NC_007605,length=171823,assembly=b37>
+##contig=<ID=hs37d5,length=35477943,assembly=b37>
+##reference=/xx/hs37d5.fa
+##tumor_sample=Tumor-666
+##normal_sample=Normal-666
+##bcftools_filterVersion=1.11+htslib-1.11
+##VEP="v103" time="2024-02-01 13:52:04" cache=/xx/homo_sapiens_refseq/103_GRCh37" ensembl-variation=103.06320c4 ensembl=103.4c8d44a ensembl-io=103.353f93a ensembl-funcgen=103.b53bef4 1000genomes="phase3" COSMIC="90" ClinVar="201912" ESP="20141103" HGMD-PUBLIC="20194" assembly="GRCh37.p13" dbSNP="153" gencode="GENCODE 19" genebuild="2011-04" gnomAD="r2.1" polyphen="2.2.2" refseq="2019-10-24 23:10:14 - GCF_000001405.25_GRCh37.p13_genomic.gff" regbuild="1.0" sift="sift5.2.2"
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|Gene|Feature_type|Feature|BIOTYPE|EXON|INTRON|HGVSc|HGVSp|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons|Existing_variation|DISTANCE|STRAND|FLAGS|SYMBOL_SOURCE|HGNC_ID|TSL|REFSEQ_MATCH|REFSEQ_OFFSET|GIVEN_REF|USED_REF|BAM_EDIT|HGVS_OFFSET|gnomAD_AF|gnomAD_AFR_AF|gnomAD_AMR_AF|gnomAD_ASJ_AF|gnomAD_EAS_AF|gnomAD_FIN_AF|gnomAD_NFE_AF|gnomAD_OTH_AF|gnomAD_SAS_AF|CLIN_SIG|SOMATIC|PHENO|FrameshiftSequence|WildtypeProtein">
+##FrameshiftSequence=Predicted sequence for frameshift mutations
+##WildtypeProtein=The normal, non-mutated protein sequence
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Normal-666	Tumor-666
