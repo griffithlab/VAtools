@@ -19,7 +19,7 @@ cannot make predictions on such variants.
 Such errors might occur in a small number of variants if there are only minor
 differences between the reference used and the Ensembl transcripts but they
 might also be more widespread, for example, if users aligned to GRCh37 but
-used a GRCh38 VEP cachce.
+used a GRCh38 VEP cache.
 
 The input VCF needs to be annotated by VEP and requires annotation with the
 ``Wildtype`` VEP plugin available as part of `pVACtools <https://pvactools.readthedocs.io/en/latest/pvacseq/input_file_prep/vep.html#installing-vep>`_.
@@ -47,4 +47,4 @@ Example Command
 
 .. code-block:: none
 
-   csq-mismatch-report input.vcf --filter soft
+   ref-transcript-mismatch-report input.vcf --filter soft
