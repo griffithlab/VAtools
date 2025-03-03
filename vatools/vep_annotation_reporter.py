@@ -32,6 +32,12 @@ def define_parser():
             +"These are used to match each TSV entry to a VCF entry. Must be tab-delimited."
     )
     parser.add_argument(
+        "-p", "--pick-transcript-tsv",
+        help="A TSV file listing transcript annotations to prioritize. Instead of reporting all transcript annotations "
+            +"or the ones selected via the VEP --flag_pick option (PICK field), report only the transcripts with the Ensembl transcript IDs listed in this TSV (expected header: transcript_id). "
+            +"To specify a preferred transcript for each variant, include CHROM, POS, REF, and ALT columns in this file in addition to the transcript_id column."
+    )
+    parser.add_argument(
         "-o", "--output-tsv",
         help="Path to write the output report TSV file. If not provided, the output TSV will be written "
             +"next to the input VCF with a .tsv file ending."
@@ -51,6 +57,33 @@ def create_tsv_reader(input_filehandle):
         if field not in tsv_reader.fieldnames:
             raise Exception("ERROR: Input TSV {} doesn't contain required column '{}'.".format(input_filehandle.name, field))
     return tsv_reader
+
+def parse_pick_transcript_tsv(pick_transcript_tsv):
+    if pick_transcript_tsv is None:
+        return None
+    with open(pick_transcript_tsv, 'r') as fh:
+        tsv_reader = csv.DictReader(fh, delimiter="\t")
+        if 'transcript_id' not in tsv_reader.fieldnames:
+            raise Exception("ERROR pick transcript TSV {} doesn't contain required column 'transcript_id'.".format(pick_transcript_tsv))
+        if all([header in tsv_reader.fieldnames for header in ['CHROM', 'POS', 'REF', 'ALT']]):
+            preferred_transcripts = {}
+            for line in tsv_reader:
+                if line['CHROM'] not in preferred_transcripts:
+                    preferred_transcripts[line['CHROM']] = {}
+
+                if line['POS'] not in preferred_transcripts[line['CHROM']]:
+                    preferred_transcripts[line['CHROM']][line['POS']] = {}
+
+                if line['REF'] not in preferred_transcripts[line['CHROM']][line['POS']]:
+                    preferred_transcripts[line['CHROM']][line['POS']][line['REF']] = {}
+
+                preferred_transcripts[line['CHROM']][line['POS']][line['REF']][line['ALT']] = line['transcript_id']
+            return preferred_transcripts
+        else:
+            preferred_transcripts = []
+            for line in tsv_reader:
+                preferred_transcripts.append(line['transcript_id'])
+            return preferred_transcripts
 
 def parse_csq_header(vcf_reader):
     format_pattern = re.compile('Format: (.*)')
@@ -99,25 +132,40 @@ def resolve_alleles(entry, csq_alleles):
                 alleles[alt] = alt
     return alleles
 
-def transcript_for_alt(transcripts, alt):
-    no_pick_value = False
-    for transcript in transcripts[alt]:
-        if 'PICK' in transcript and transcript['PICK'] == '1':
-            return transcript, no_pick_value
-
-    if 'PICK' in transcripts[alt][0]:
+def transcript_for_alt(transcripts, alt, preferred_transcripts):
+    no_pick_value = None
+    if preferred_transcripts is not None:
+        if type(preferred_transcripts) is list:
+            transcripts_to_include = []
+            for transcript in transcripts[alt]:
+                if transcript['Feature'] in preferred_transcripts:
+                    transcripts_to_include.append(transcript)
+        else:
+            transcripts_to_include = []
+            for transcript in transcripts[alt]:
+                if transcript['Feature'] == preferred_transcripts:
+                    transcripts_to_include.append(transcript)
+        if len(transcripts_to_include) == 0:
+            transcripts_to_include = transcripts[alt]
+    elif 'PICK' in transcripts[alt][0]:
+        for transcript in transcripts[alt]:
+            if 'PICK' in transcript and transcript['PICK'] == '1':
+                return transcript, False
         no_pick_value = True
+        transcripts_to_include = transcripts[alt]
+    else:
+        transcripts_to_include = transcripts[alt]
 
     merged_transcripts = {}
-    for key in transcripts[alt][0].keys():
-        merged_transcripts[key] = ",".join([transcript[key] for transcript in transcripts[alt]])
+    for key in transcripts_to_include[0].keys():
+        merged_transcripts[key] = ",".join([transcript[key] for transcript in transcripts_to_include])
     return merged_transcripts, no_pick_value
 
 def decode_hex(match_string):
     hex_string = match_string.group(0).replace('%', '')
     return binascii.unhexlify(hex_string).decode('utf-8')
 
-def extract_vep_fields(args):
+def extract_vep_fields(args, preferred_transcripts):
     vcf_reader = create_vcf_reader(args)
     csq_fields = parse_csq_header(vcf_reader)
     vep = {}
@@ -148,7 +196,11 @@ def extract_vep_fields(args):
             alt = alt.serialize()
             if alt not in vep[chr][pos][ref]:
                 if alleles_dict[alt] in transcripts:
-                    values, no_pick_value = transcript_for_alt(transcripts, alleles_dict[alt])
+                    if type(preferred_transcripts) is dict:
+                        p = preferred_transcripts[chr][pos][ref][alt]
+                    else:
+                        p = preferred_transcripts
+                    values, no_pick_value = transcript_for_alt(transcripts, alleles_dict[alt], p)
                     if no_pick_value:
                         logging.warning("VCF is annotated with the PICK flag but no PICK'ed transcript found for variant {} {} {} {}. Writing values for all transcripts.".format(chr, pos, ref, alt))
                     vep[chr][pos][ref][alt] = values
@@ -177,7 +229,8 @@ def main(args_input = sys.argv[1:]):
     parser = define_parser()
     args = parser.parse_args(args_input)
 
-    vep = extract_vep_fields(args)
+    preferred_transcripts = parse_pick_transcript_tsv(args.pick_transcript_tsv)
+    vep = extract_vep_fields(args, preferred_transcripts)
 
     if args.output_tsv:
         output_file = args.output_tsv
