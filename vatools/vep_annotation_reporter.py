@@ -133,7 +133,7 @@ def resolve_alleles(entry, csq_alleles):
     return alleles
 
 def transcript_for_alt(transcripts, alt, preferred_transcripts):
-    no_pick_value = None
+    no_preferred_transcript = None
     if preferred_transcripts is not None:
         if type(preferred_transcripts) is list:
             transcripts_to_include = []
@@ -145,21 +145,24 @@ def transcript_for_alt(transcripts, alt, preferred_transcripts):
             for transcript in transcripts[alt]:
                 if transcript['Feature'] == preferred_transcripts:
                     transcripts_to_include.append(transcript)
-        if len(transcripts_to_include) == 0:
-            transcripts_to_include = transcripts[alt]
-    elif 'PICK' in transcripts[alt][0]:
+        if len(transcripts_to_include) > 0:
+            return merge_transcripts(transcripts_to_include), None, False
+        else:
+            no_preferred_transcript = True
+
+    if 'PICK' in transcripts[alt][0]:
         for transcript in transcripts[alt]:
             if 'PICK' in transcript and transcript['PICK'] == '1':
-                return transcript, False
-        no_pick_value = True
-        transcripts_to_include = transcripts[alt]
+                return transcript, False, no_preferred_transcript
+        return merge_transcripts(transcripts[alt]), True, no_preferred_transcript
     else:
-        transcripts_to_include = transcripts[alt]
+        return merge_transcripts(transcripts[alt]), None, no_preferred_transcript
 
+def merge_transcripts(transcripts_to_include):
     merged_transcripts = {}
     for key in transcripts_to_include[0].keys():
         merged_transcripts[key] = ",".join([transcript[key] for transcript in transcripts_to_include])
-    return merged_transcripts, no_pick_value
+    return merged_transcripts
 
 def decode_hex(match_string):
     hex_string = match_string.group(0).replace('%', '')
@@ -197,10 +200,12 @@ def extract_vep_fields(args, preferred_transcripts):
             if alt not in vep[chr][pos][ref]:
                 if alleles_dict[alt] in transcripts:
                     if type(preferred_transcripts) is dict:
-                        p = preferred_transcripts[chr][pos][ref][alt]
+                        p = preferred_transcripts.get(chr, {}).get(pos, {}).get(ref, {}).get(alt, {})
                     else:
                         p = preferred_transcripts
-                    values, no_pick_value = transcript_for_alt(transcripts, alleles_dict[alt], p)
+                    values, no_pick_value, no_preferred_transcript = transcript_for_alt(transcripts, alleles_dict[alt], p)
+                    if no_preferred_transcript:
+                        logging.warning("Preferred transcripts TSV provided but no matching transcript found for variant {} {} {} {}. Writing value for PICK'ed transcript.".format(chr, pos, ref, alt))
                     if no_pick_value:
                         logging.warning("VCF is annotated with the PICK flag but no PICK'ed transcript found for variant {} {} {} {}. Writing values for all transcripts.".format(chr, pos, ref, alt))
                     vep[chr][pos][ref][alt] = values
