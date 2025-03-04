@@ -88,6 +88,36 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.multiallelic.tsv'), os.path.join(temp_path.name, 'input.tsv')))
         temp_path.cleanup()
 
+    def test_preferred_transcripts(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf.gz'),
+            'Consequence',
+            'Gene',
+            'Feature',
+            '-t', os.path.join(self.test_data_dir, 'preferred_transcripts.pos.tsv'),
+            '-p', os.path.join(self.test_data_dir, 'preferred_transcripts.pos.tsv'),
+        ]
+        vep_annotation_reporter.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.preferred_transcript.tsv'), os.path.join(temp_path.name, 'input.tsv')))
+        temp_path.cleanup()
+
+    def test_preferred_transcripts_list(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf.gz'),
+            'Consequence',
+            'Gene',
+            'Feature',
+            '-t', os.path.join(self.test_data_dir, 'preferred_transcripts.pos.tsv'),
+            '-p', os.path.join(self.test_data_dir, 'preferred_transcripts.list.tsv'),
+        ]
+        vep_annotation_reporter.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.preferred_transcript.list.tsv'), os.path.join(temp_path.name, 'input.tsv')))
+        temp_path.cleanup()
+
     def test_no_input_tsv(self):
         temp_path = tempfile.TemporaryDirectory()
         os.symlink(os.path.join(self.test_data_dir, 'input.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
