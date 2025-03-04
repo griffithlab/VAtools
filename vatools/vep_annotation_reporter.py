@@ -32,7 +32,7 @@ def define_parser():
             +"These are used to match each TSV entry to a VCF entry. Must be tab-delimited."
     )
     parser.add_argument(
-        "-p", "--pick-transcript-tsv",
+        "-p", "--preferred-transcripts-tsv",
         help="A TSV file listing transcript annotations to prioritize. Instead of reporting all transcript annotations "
             +"or the ones selected via the VEP --flag_pick option (PICK field), report only the transcripts with the Ensembl transcript IDs listed in this TSV (expected header: transcript_id). "
             +"To specify a preferred transcript for each variant, include CHROM, POS, REF, and ALT columns in this file in addition to the transcript_id column."
@@ -58,13 +58,13 @@ def create_tsv_reader(input_filehandle):
             raise Exception("ERROR: Input TSV {} doesn't contain required column '{}'.".format(input_filehandle.name, field))
     return tsv_reader
 
-def parse_pick_transcript_tsv(pick_transcript_tsv):
-    if pick_transcript_tsv is None:
+def parse_preferred_transcripts_tsv(preferred_transcripts_tsv):
+    if preferred_transcripts_tsv is None:
         return None
-    with open(pick_transcript_tsv, 'r') as fh:
+    with open(preferred_transcripts_tsv, 'r') as fh:
         tsv_reader = csv.DictReader(fh, delimiter="\t")
         if 'transcript_id' not in tsv_reader.fieldnames:
-            raise Exception("ERROR pick transcript TSV {} doesn't contain required column 'transcript_id'.".format(pick_transcript_tsv))
+            raise Exception("ERROR preferred transcripts TSV {} doesn't contain required column 'transcript_id'.".format(preferred_transcripts_tsv))
         if all([header in tsv_reader.fieldnames for header in ['CHROM', 'POS', 'REF', 'ALT']]):
             preferred_transcripts = {}
             for line in tsv_reader:
@@ -234,7 +234,7 @@ def main(args_input = sys.argv[1:]):
     parser = define_parser()
     args = parser.parse_args(args_input)
 
-    preferred_transcripts = parse_pick_transcript_tsv(args.pick_transcript_tsv)
+    preferred_transcripts = parse_preferred_transcripts_tsv(args.preferred_transcripts_tsv)
     vep = extract_vep_fields(args, preferred_transcripts)
 
     if args.output_tsv:
