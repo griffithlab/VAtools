@@ -10,6 +10,8 @@ import logging
 from testfixtures import LogCapture, StringComparison as S
 from io import StringIO
 from unittest.mock import patch
+import shutil
+from distutils.util import strtobool
 
 class RefTranscriptMismatchReporterTests(unittest.TestCase):
     @classmethod
@@ -17,6 +19,7 @@ class RefTranscriptMismatchReporterTests(unittest.TestCase):
         base_dir          = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
         cls.executable    = os.path.join(base_dir, 'vatools', 'ref_transcript_mismatch_reporter.py')
         cls.test_data_dir = os.path.join(base_dir, 'tests', 'test_data', 'ref_transcript_mismatch_reporter')
+        cls.REGENERATE_TEST_DATA = strtobool(os.environ.get('REGENERATE_TEST_DATA', 'false'))
 
     def test_source_compiles(self):
         self.assertTrue(py_compile.compile(self.executable))
@@ -40,6 +43,11 @@ class RefTranscriptMismatchReporterTests(unittest.TestCase):
                 os.path.join(temp_path.name, 'input.vcf'),
             ]
             ref_transcript_mismatch_reporter.main(command)
+            if self.REGENERATE_TEST_DATA:
+                shutil.copy(
+                    os.path.join(temp_path.name, 'input.mismatches.tsv'),
+                    os.path.join(self.test_data_dir, 'output.mismatches.tsv'),
+                )
             self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.mismatches.tsv'), os.path.join(temp_path.name, 'input.mismatches.tsv')))
             temp_path.cleanup()
             self.assertTrue("Total number of variants: 2" in str(l))
@@ -54,6 +62,11 @@ class RefTranscriptMismatchReporterTests(unittest.TestCase):
             "soft"
         ]
         ref_transcript_mismatch_reporter.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.filtered.vcf'),
+                os.path.join(self.test_data_dir, 'output.soft.filtered.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.soft.filtered.vcf'), os.path.join(temp_path.name, 'input.filtered.vcf')))
         temp_path.cleanup()
 
@@ -66,6 +79,11 @@ class RefTranscriptMismatchReporterTests(unittest.TestCase):
             "hard"
         ]
         ref_transcript_mismatch_reporter.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.filtered.vcf'),
+                os.path.join(self.test_data_dir, 'output.hard.filtered.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.hard.filtered.vcf'), os.path.join(temp_path.name, 'input.filtered.vcf')))
         temp_path.cleanup()
 
@@ -78,6 +96,11 @@ class RefTranscriptMismatchReporterTests(unittest.TestCase):
             "hard"
         ]
         ref_transcript_mismatch_reporter.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.filtered.vcf'),
+                os.path.join(self.test_data_dir, 'output.no_protein_pos.filtered.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.no_protein_pos.filtered.vcf'), os.path.join(temp_path.name, 'input.filtered.vcf')))
         temp_path.cleanup()
 
@@ -90,5 +113,10 @@ class RefTranscriptMismatchReporterTests(unittest.TestCase):
             "hard"
         ]
         ref_transcript_mismatch_reporter.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.filtered.vcf'),
+                os.path.join(self.test_data_dir, 'output.protein_coding.filtered.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.protein_coding.filtered.vcf'), os.path.join(temp_path.name, 'input.filtered.vcf')))
         temp_path.cleanup()

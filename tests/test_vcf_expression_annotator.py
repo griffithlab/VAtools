@@ -7,13 +7,16 @@ import tempfile
 from filecmp import cmp
 import logging
 from testfixtures import LogCapture, StringComparison as S
+import shutil
+from distutils.util import strtobool
 
-class VcfExpressionEncoderTests(unittest.TestCase):
+class VcfExpressionAnnotatorTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         base_dir          = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
         cls.executable    = os.path.join(base_dir, 'vatools', 'vcf_expression_annotator.py')
         cls.test_data_dir = os.path.join(base_dir, 'tests', 'test_data')
+        cls.REGENERATE_TEST_DATA = strtobool(os.environ.get('REGENERATE_TEST_DATA', 'false'))
 
     def test_source_compiles(self):
         self.assertTrue(py_compile.compile(self.executable))
@@ -149,6 +152,11 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'gene',
         ]
         vcf_expression_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.gx.vcf'),
+                os.path.join(self.test_data_dir, 'input.ensr_transcript.gx.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.ensr_transcript.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
         temp_path.cleanup()
 
@@ -178,6 +186,11 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             '-s', 'H_NJ-HCC1395-HCC1395',
         ]
         vcf_expression_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.gx.vcf'),
+                os.path.join(self.test_data_dir, 'multiple_samples.gx.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multiple_samples.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
         temp_path.cleanup()
 
@@ -191,6 +204,11 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'gene',
         ]
         vcf_expression_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.gx.vcf'),
+                os.path.join(self.test_data_dir, 'multiple_transcripts.gx.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multiple_transcripts.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
         temp_path.cleanup()
 
@@ -204,6 +222,11 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'gene',
         ]
         vcf_expression_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.gx.vcf'),
+                os.path.join(self.test_data_dir, 'multiple_transcripts_one_missing_gene.gx.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multiple_transcripts_one_missing_gene.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
         temp_path.cleanup()
 
@@ -217,6 +240,11 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'gene',
         ]
         vcf_expression_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.gx.vcf'),
+                os.path.join(self.test_data_dir, 'input.cufflinks.gx.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.cufflinks.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
         temp_path.cleanup()
 
@@ -230,6 +258,11 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'transcript',
         ]
         vcf_expression_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.tx.vcf'),
+                os.path.join(self.test_data_dir, 'input.cufflinks.tx.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.cufflinks.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
         temp_path.cleanup()
 
@@ -243,6 +276,11 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'gene',
         ]
         vcf_expression_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.gx.vcf'),
+                os.path.join(self.test_data_dir, 'input.kallisto.gx.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.kallisto.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
         temp_path.cleanup()
 
@@ -256,6 +294,11 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'transcript',
         ]
         vcf_expression_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.tx.vcf'),
+                os.path.join(self.test_data_dir, 'input.kallisto.tx.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.kallisto.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
         temp_path.cleanup()
 
@@ -269,6 +312,11 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'gene',
         ]
         vcf_expression_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.gx.vcf'),
+                os.path.join(self.test_data_dir, 'input.stringtie.gx.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.stringtie.gx.vcf'), os.path.join(temp_path.name, 'input.gx.vcf')))
         temp_path.cleanup()
 
@@ -282,6 +330,11 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'transcript',
         ]
         vcf_expression_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.tx.vcf'),
+                os.path.join(self.test_data_dir, 'input.stringtie.tx.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.stringtie.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
         temp_path.cleanup()
 
@@ -296,6 +349,11 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             "--ignore-ensembl-id-version",
         ]
         vcf_expression_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.tx.vcf'),
+                os.path.join(self.test_data_dir, 'input.kallisto.with_version.tx.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.kallisto.with_version.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
         temp_path.cleanup()
 
@@ -310,6 +368,11 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             "--ignore-ensembl-id-version",
         ]
         vcf_expression_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.tx.vcf'),
+                os.path.join(self.test_data_dir, 'input.kallisto.tx.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.kallisto.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
         temp_path.cleanup()
 
@@ -353,5 +416,10 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'transcript',
         ]
         vcf_expression_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.tx.vcf'),
+                os.path.join(self.test_data_dir, 'input.ensr_transcript.tx.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.ensr_transcript.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
         temp_path.cleanup()

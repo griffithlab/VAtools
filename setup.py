@@ -16,7 +16,7 @@ setup(
         ]
     },
     install_requires=[
-        'vcfpy==0.12.3',
+        'vcfpy==0.13.8',
         'pysam',
         'pandas',
         'gtfparse==1.3.0',

@@ -5,13 +5,16 @@ import py_compile
 from vatools import vcf_genotype_annotator
 import tempfile
 from filecmp import cmp
+import shutil
+from distutils.util import strtobool
 
-class VcfExpressionEncoderTests(unittest.TestCase):
+class VcfGenotypeAnnotatorTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         base_dir          = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
         cls.executable    = os.path.join(base_dir, 'vatools', 'vcf_genotype_annotator.py')
         cls.test_data_dir = os.path.join(base_dir, 'tests', 'test_data')
+        cls.REGENERATE_TEST_DATA = strtobool(os.environ.get('REGENERATE_TEST_DATA', 'false'))
 
     def test_source_compiles(self):
         self.assertTrue(py_compile.compile(self.executable))
@@ -35,6 +38,11 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             '0/1',
         ]
         vcf_genotype_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.genotype.vcf'),
+                os.path.join(self.test_data_dir, 'no_sample.genotype.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'no_sample.genotype.vcf'), os.path.join(temp_path.name, 'input.genotype.vcf')))
         temp_path.cleanup()
 
@@ -47,6 +55,11 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             '0/1',
         ]
         vcf_genotype_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.genotype.vcf'),
+                os.path.join(self.test_data_dir, 'single_sample.genotype.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'single_sample.genotype.vcf'), os.path.join(temp_path.name, 'input.genotype.vcf')))
         temp_path.cleanup()
 
@@ -59,6 +72,11 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             '0/1',
         ]
         vcf_genotype_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.genotype.vcf'),
+                os.path.join(self.test_data_dir, 'no_gt_in_format.genotype.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'no_gt_in_format.genotype.vcf'), os.path.join(temp_path.name, 'input.genotype.vcf')))
         temp_path.cleanup()
 
@@ -71,5 +89,10 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             '0/1',
         ]
         vcf_genotype_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.genotype.vcf'),
+                os.path.join(self.test_data_dir, 'existing_sample.genotype.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'existing_sample.genotype.vcf'), os.path.join(temp_path.name, 'input.genotype.vcf')))
         temp_path.cleanup()
