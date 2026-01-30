@@ -6,7 +6,7 @@ from vatools import vcf_genotype_annotator
 import tempfile
 from filecmp import cmp
 import shutil
-from distutils.util import strtobool
+from strtobool import strtobool
 
 class VcfGenotypeAnnotatorTests(unittest.TestCase):
     @classmethod

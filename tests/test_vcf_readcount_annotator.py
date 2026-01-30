@@ -9,7 +9,7 @@ import io
 import logging
 from testfixtures import LogCapture, StringComparison as S
 import shutil
-from distutils.util import strtobool
+from strtobool import strtobool
 
 class VcfReadcountAnnotatorTests(unittest.TestCase):
     @classmethod

@@ -6,7 +6,7 @@ from vatools import vcf_info_annotator
 import tempfile
 from filecmp import cmp
 import shutil
-from distutils.util import strtobool
+from strtobool import strtobool
 
 class VcfInfoAnnotatorTests(unittest.TestCase):
     @classmethod

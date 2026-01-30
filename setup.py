@@ -21,6 +21,7 @@ setup(
         'pandas',
         'gtfparse==1.3.0',
         'testfixtures',
+        'distutils-strtobool',
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',

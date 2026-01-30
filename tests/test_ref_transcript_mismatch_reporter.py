@@ -11,7 +11,7 @@ from testfixtures import LogCapture, StringComparison as S
 from io import StringIO
 from unittest.mock import patch
 import shutil
-from distutils.util import strtobool
+from strtobool import strtobool
 
 class RefTranscriptMismatchReporterTests(unittest.TestCase):
     @classmethod
