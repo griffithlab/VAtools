@@ -3,6 +3,7 @@ import sys
 import vcfpy
 import csv
 from collections import OrderedDict
+from vatools.utils import open_maybe_gz
 
 def to_array(dictionary):
     array = []
@@ -10,27 +11,65 @@ def to_array(dictionary):
         array.append("{}|{}".format(key, value))
     return sorted(array)
 
-def parse_tsv_file(args):
-    values={}
-    with open(args.values_file,'r') as tsvin:
+def parse_column_mappings(mapping_str):
+    mappings = []
+    for item in mapping_str.split(','):
+        parts = item.split(':')
+        if len(parts) < 4 or len(parts) > 6:
+            raise Exception("Invalid column mapping '{}'. Expected format: source_col:info_field:type:description[:source[:version]]".format(item))
+        mappings.append({
+            'source_col':  parts[0],
+            'info_field':  parts[1],
+            'type':        parts[2],
+            'description': parts[3],
+            'source':      parts[4] if len(parts) > 4 else None,
+            'version':     parts[5] if len(parts) > 5 else None,
+        })
+    return mappings
+
+# Coerce the string values from the file into valid integers or floats
+# handle NA/NaN/Inf values appropriately. Serves as a sanity check
+# since it 
+def coerce_value(value, type_str):
+    v = value.strip().lower()
+    if v in (".", ""):
+        return "."
+    if type_str == 'Float':
+        if v in ("na", "nan"):
+            return float('nan')
+        if v in ("inf", "+inf"):
+            return float('inf')
+        if v == "-inf":
+            return float('-inf')
+        return float(value)
+    if type_str == 'Integer':
+        if v in ("na", "nan"):
+            return None
+        if v in ("inf", "+inf", "-inf"): #no way to represent inf as an integer
+            raise ValueError("'{}' cannot be represented as an Integer in a VCF INFO field".format(value))
+        return int(value)
+    return value
+
+def parse_tsv_file(args, mappings):
+    values = {}
+    with open_maybe_gz(args.values_file) as tsvin:
         tsvin = csv.reader(tsvin, delimiter='\t')
+        header = next(tsvin)
         for row in tsvin:
-            if any(x.strip() for x in row): #skip blank lines
-                values[(row[0] + ":" + row[1])] = row[2]
+            if any(x.strip() for x in row):
+                key = row[0] + ":" + row[1]
+                values[key] = {col: row[header.index(col)] for col in [m['source_col'] for m in mappings]}
     return values
 
-
-def create_vcf_reader(args):
+def create_vcf_reader(args, mappings):
     vcf_reader = vcfpy.Reader.from_path(args.input_vcf)
-    if args.info_field in vcf_reader.header.info_ids() and not args.overwrite:
-        vcf_reader.close()
-        raise Exception("INFO already contains a {} field. Choose a different label, or use the --overwrite flag to retain this field and overwrite values".format(args.info_field))
-    if args.overwrite and not args.info_field in vcf_reader.header.info_ids():
-        vcf_reader.close()
-        raise Exception("INFO field {} does not exist and thus cannot be overwritten!".format(args.info_field))
+    for m in mappings:
+        if m['info_field'] in vcf_reader.header.info_ids() and not args.overwrite:
+            vcf_reader.close()
+            raise Exception("INFO already contains a {} field. Choose a different label, or use the --overwrite flag to retain this field and overwrite values".format(m['info_field']))
     return vcf_reader
 
-def create_vcf_writer(args, vcf_reader):
+def create_vcf_writer(args, vcf_reader, mappings):
     if args.output_vcf:
         output_file = args.output_vcf
     else:
@@ -39,61 +78,57 @@ def create_vcf_writer(args, vcf_reader):
 
     new_header = vcf_reader.header.copy()
 
-    if args.overwrite:
-        if args.value_format or args.description:
-            print("Warning: --overwrite flag is set, so existing header for {} field will be retained and --value_format and --description inputs will be ignored".format(args.info_field))
-    else:
-        od = OrderedDict([('ID', args.info_field), ('Number', '1'), ('Type', args.value_format), ('Description', args.description)])
-        if args.source:
-            od['Source'] = args.source
-        if args.version:
-            od['Version'] = args.version
+    for m in mappings:
+        if args.overwrite and m['info_field'] in new_header.info_ids():
+            print("WARNING: overwriting existing INFO header line for '{}'".format(m['info_field']), file=sys.stderr)
+            new_header.lines = [
+                l for l in new_header.lines
+                if not (hasattr(l, 'key') and l.key == 'INFO' and l.mapping.get('ID') == m['info_field'])
+            ]
+            new_header._indices.pop(('INFO', m['info_field']), None)
+        od = OrderedDict([('ID', m['info_field']), ('Number', '1'), ('Type', m['type']), ('Description', m['description'])])
+        if m['source']:
+            od['Source'] = m['source']
+        if m['version']:
+            od['Version'] = m['version']
         new_header.add_info_line(od)
     return vcfpy.Writer.from_path(output_file, new_header)
 
 def define_parser():
     parser = argparse.ArgumentParser(
         "vcf-info-annotator",
-        description = "A tool that will add data from a tab-delimited file to any user-specified " +
+        description = "A tool that will add data from a tab-delimited file to a user-specified " +
                       "field in the VCF INFO column."
     )
-
     parser.add_argument(
         "input_vcf",
         help="A VCF file"
     )
     parser.add_argument(
         "values_file",
-        help="A TSV file containing three columns: chromosome, position, value"
+        help="A TSV file with a header row. The first two columns must be chromosome and position. "
+            +"One or more additional columns can be mapped to VCF INFO fields via --column-mappings."
     )
     parser.add_argument(
-        "info_field",
-        help="The INFO field name to use"
-    )
-    parser.add_argument(
-        "-d", "--description",
-        help="The description of the INFO field to add to the header"
-    )
-    parser.add_argument(
-        "-f", "--value_format",
-        choices=['Integer', 'Float', 'Flag', 'Character', 'String'],
-        help="The format of the values to be placed into the info field.",
+        "-m", "--column-mappings",
+        required=True,
+        help="Comma-separated list of mappings from TSV columns to VCF INFO fields. "
+            +"Required fields: source_col:info_field:type:description. "
+            +"Optional fields: :source and :version appended after description. "
+            +"Example: \"mq:MQ0:Integer:Mapping quality:dbSNP:1.0,class:CVCLASS:String:ClinVar Classification\""
     )
     parser.add_argument(
         "-o", "--output-vcf",
         help="Path to write the output VCF file. If not provided, the output VCF file will be "
             +"written next to the input VCF file with a .info.vcf file ending."
     )
-    parser.add_argument(
-        "-s", "--source",
-        help="The string to put in the \"source\" section of the INFO header line - optional"
-    )
     parser.add_argument('-w', "--overwrite", action='store_true',
-        help="by default, ths tool will raise an exception if the field specified already exists in the VCF. This flag allows existing fields to be overwritten."
+        help="By default, this tool will raise an exception if a mapped field already exists in the VCF. "
+            +"This flag allows existing fields to be overwritten."
     )
-    parser.add_argument(
-        "-v", "--version",
-        help="The string to put in the \"version\" section of the INFO header line - optional"
+    parser.add_argument('--clear-existing', action='store_true',
+        help="When overwriting, remove preexisting values for mapped INFO fields from every record, "
+            +"not just those with a TSV match. Requires --overwrite."
     )
     return parser
 
@@ -101,19 +136,23 @@ def main(args_input = sys.argv[1:]):
     parser = define_parser()
     args = parser.parse_args(args_input)
 
-    #if we're not overwriting an existing field, then these are required
-    if not args.overwrite:
-        if args.description is None or args.value_format is None:
-            raise Exception("the --description and --value_format arguments are required unless updating/overwriting an existing field (with flag --overwrite)")
-
-    vcf_reader  = create_vcf_reader(args)
-    vcf_writer = create_vcf_writer(args, vcf_reader)
-
-    values = parse_tsv_file(args)
+    mappings = parse_column_mappings(args.column_mappings)
+    if args.clear_existing and not args.overwrite:
+        parser.error("--clear-existing requires --overwrite")
+    vcf_reader = create_vcf_reader(args, mappings)
+    vcf_writer = create_vcf_writer(args, vcf_reader, mappings)
+    values = parse_tsv_file(args, mappings)
 
     for entry in vcf_reader:
-        if entry.CHROM + ":" + str(entry.POS) in values:
-            entry.INFO[args.info_field] = values[entry.CHROM + ":" + str(entry.POS)]
+        key = entry.CHROM + ":" + str(entry.POS)
+        if args.clear_existing:
+            for m in mappings:
+                entry.INFO.pop(m['info_field'], None)
+        if key in values:
+            row_vals = values[key]
+            for m in mappings:
+                if m['source_col'] in row_vals:
+                    entry.INFO[m['info_field']] = coerce_value(row_vals[m['source_col']], m['type'])
         vcf_writer.write_record(entry)
 
     vcf_reader.close()
