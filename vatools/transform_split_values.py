@@ -10,6 +10,7 @@ import csv
 import binascii
 from statistics import mean, median, stdev
 import logging
+from vatools.utils import open_maybe_gz
 
 def define_parser():
     parser = argparse.ArgumentParser(
@@ -176,7 +177,7 @@ def main(args_input = sys.argv[1:]):
         output_file = "{}.tsv".format(head)
 
     if args.input_tsv:
-        with open(args.input_tsv, 'r') as input_filehandle:
+        with open_maybe_gz(args.input_tsv) as input_filehandle:
             tsv_reader = create_tsv_reader(input_filehandle)
             output_filehandle = open(output_file, 'w')
             writer = csv.DictWriter(output_filehandle, fieldnames = tsv_reader.fieldnames + field_names(args, sample_name), delimiter = "\t")

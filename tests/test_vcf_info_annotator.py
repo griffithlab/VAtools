@@ -51,6 +51,20 @@ class VcfInfoEncoderTests(unittest.TestCase):
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'info_annotation.vcf'), os.path.join(temp_path.name, 'info_annotation.vcf')))
         temp_path.cleanup()
 
+    def test_gzipped_values_file(self):
+        temp_path = tempfile.TemporaryDirectory()
+        command = [
+            os.path.join(self.test_data_dir, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'info.tsv.gz'),
+            'TEST',
+            '-d', "test",
+            '-f', 'Integer',
+            '-o', os.path.join(temp_path.name, 'info_annotation.vcf')
+        ]
+        vcf_info_annotator.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'info_annotation.vcf'), os.path.join(temp_path.name, 'info_annotation.vcf')))
+        temp_path.cleanup()
+
     def test_simple_string(self):
         temp_path = tempfile.TemporaryDirectory()
         command = [

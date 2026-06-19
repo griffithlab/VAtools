@@ -11,47 +11,8 @@ def to_array(dictionary):
         array.append("{}|{}".format(key, value))
     return sorted(array)
 
-def parse_column_mappings(mapping_str):
-    mappings = []
-    for item in mapping_str.split(','):
-        parts = item.split(':')
-        if len(parts) < 4 or len(parts) > 6:
-            raise Exception("Invalid column mapping '{}'. Expected format: source_col:info_field:type:description[:source[:version]]".format(item))
-        mappings.append({
-            'source_col':  parts[0],
-            'info_field':  parts[1],
-            'type':        parts[2],
-            'description': parts[3],
-            'source':      parts[4] if len(parts) > 4 else None,
-            'version':     parts[5] if len(parts) > 5 else None,
-        })
-    return mappings
-
-# Coerce the string values from the file into valid integers or floats
-# handle NA/NaN/Inf values appropriately. Serves as a sanity check
-# since it 
-def coerce_value(value, type_str):
-    v = value.strip().lower()
-    if v in (".", ""):
-        return "."
-    if type_str == 'Float':
-        if v in ("na", "nan"):
-            return float('nan')
-        if v in ("inf", "+inf"):
-            return float('inf')
-        if v == "-inf":
-            return float('-inf')
-        return float(value)
-    if type_str == 'Integer':
-        if v in ("na", "nan"):
-            return None
-        if v in ("inf", "+inf", "-inf"): #no way to represent inf as an integer
-            raise ValueError("'{}' cannot be represented as an Integer in a VCF INFO field".format(value))
-        return int(value)
-    return value
-
-def parse_tsv_file(args, mappings):
-    values = {}
+def parse_tsv_file(args):
+    values={}
     with open_maybe_gz(args.values_file) as tsvin:
         tsvin = csv.reader(tsvin, delimiter='\t')
         header = next(tsvin)

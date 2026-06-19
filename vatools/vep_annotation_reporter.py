@@ -9,6 +9,7 @@ import tempfile
 import csv
 import binascii
 import logging
+from vatools.utils import open_maybe_gz
 
 def define_parser():
     parser = argparse.ArgumentParser(
@@ -61,7 +62,7 @@ def create_tsv_reader(input_filehandle):
 def parse_preferred_transcripts_tsv(preferred_transcripts_tsv):
     if preferred_transcripts_tsv is None:
         return None
-    with open(preferred_transcripts_tsv, 'r') as fh:
+    with open_maybe_gz(preferred_transcripts_tsv) as fh:
         tsv_reader = csv.DictReader(fh, delimiter="\t")
         if 'transcript_id' not in tsv_reader.fieldnames:
             raise Exception("ERROR preferred transcripts TSV {} doesn't contain required column 'transcript_id'.".format(preferred_transcripts_tsv))
@@ -244,7 +245,7 @@ def main(args_input = sys.argv[1:]):
         output_file = "{}.tsv".format(head)
 
     if args.input_tsv:
-        with open(args.input_tsv, 'r') as input_filehandle:
+        with open_maybe_gz(args.input_tsv) as input_filehandle:
             tsv_reader = create_tsv_reader(input_filehandle)
             output_filehandle = open(output_file, 'w')
             writer = csv.DictWriter(output_filehandle, fieldnames = tsv_reader.fieldnames + args.vep_fields, delimiter = "\t")
