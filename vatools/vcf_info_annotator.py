@@ -3,6 +3,7 @@ import sys
 import vcfpy
 import csv
 from collections import OrderedDict
+from vatools.utils import open_maybe_gz
 
 def to_array(dictionary):
     array = []
@@ -12,7 +13,7 @@ def to_array(dictionary):
 
 def parse_tsv_file(args):
     values={}
-    with open(args.values_file,'r') as tsvin:
+    with open_maybe_gz(args.values_file) as tsvin:
         tsvin = csv.reader(tsvin, delimiter='\t')
         for row in tsvin:
             if any(x.strip() for x in row): #skip blank lines

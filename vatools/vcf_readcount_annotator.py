@@ -7,6 +7,7 @@ import tempfile
 import csv
 from collections import OrderedDict
 import logging
+from vatools.utils import open_maybe_gz
 
 def define_parser():
     parser = argparse.ArgumentParser(
@@ -58,7 +59,7 @@ def parse_brct_field(brcts):
 
 def parse_bam_readcount_file(args):
     coverage = {}
-    with open(args.bam_readcount_file, 'r') as reader:
+    with open_maybe_gz(args.bam_readcount_file) as reader:
         coverage_tsv_reader = csv.reader(reader, delimiter='\t')
         for row in coverage_tsv_reader:
             chromosome     = row[0]
