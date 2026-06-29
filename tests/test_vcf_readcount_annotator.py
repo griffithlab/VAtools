@@ -283,6 +283,40 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             self.assertEqual(data['VA3P'], 0.52)
         temp_path.cleanup()
 
+    def test_extra_field_all_short_flags(self):
+        temp_path = tempfile.TemporaryDirectory()
+        output_vcf = os.path.join(temp_path.name, 'output.vcf')
+        logging.disable(logging.NOTSET)
+        with LogCapture() as l:
+            command = [
+                os.path.join(self.test_data_dir, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'snvs.bam_readcount'),
+                'DNA',
+                '-o', output_vcf,
+                '-q', '-b', '-e', '-r', '-f', '-m', '-k', '-2', '-d', '-c', '-3',
+            ]
+            vcf_readcount_annotator.main(command)
+        self.assertTrue(any('--strand-counts (-r)' in ''.join(rec) for rec in l.actual()))
+        vcf_reader = vcfpy.Reader.from_path(output_vcf)
+        format_ids = vcf_reader.header.format_ids()
+        for tag in ['VAMQ', 'VABQ', 'VASEMQ', 'VAPF', 'VAMF', 'VAMQS', 'VAQ2', 'VAQD', 'VACL', 'VA3P']:
+            self.assertIn(tag, format_ids)
+        for entry in vcf_reader:
+            sample = vcf_reader.header.samples.names[0]
+            data = entry.call_for_sample[sample].data
+            self.assertEqual(data['VAMQ'], 60.0)
+            self.assertEqual(data['VABQ'], 35.0)
+            self.assertEqual(data['VASEMQ'], 0.0)
+            self.assertEqual(data['VAPF'], 0.68)
+            self.assertEqual(data['VAMF'], 0.01)
+            self.assertEqual(data['VAMQS'], 36.4)
+            self.assertEqual(data['VAQ2'], 3)
+            self.assertEqual(data['VAQD'], 0.52)
+            self.assertEqual(data['VACL'], 148.8)
+            self.assertEqual(data['VA3P'], 0.52)
+        vcf_reader.close()
+        temp_path.cleanup()
+
     def test_extra_field_strand_counts_rna_mode(self):
         temp_path = tempfile.TemporaryDirectory()
         output_vcf = os.path.join(temp_path.name, 'output.vcf')

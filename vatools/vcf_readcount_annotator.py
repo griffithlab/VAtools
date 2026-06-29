@@ -58,16 +58,16 @@ def define_parser():
         help='Append avg base quality of variant-supporting reads (FORMAT tag: VABQ).'
     )
     extra.add_argument(
-        '-E', '--avg-se-mapping-quality', action='store_true', default=False,
+        '-e', '--avg-se-mapping-quality', action='store_true', default=False,
         help='Append avg SE mapping quality of variant-supporting reads (FORMAT tag: VASEMQ).'
     )
     extra.add_argument(
-        '-S', '--strand-counts', action='store_true', default=False,
+        '-r', '--strand-counts', action='store_true', default=False,
         help='Append ref and var forward/reverse strand read counts (FORMAT tags: ADF, ADR). '
              'In DNA mode ADF/ADR are already written; this flag is a no-op with a warning.'
     )
     extra.add_argument(
-        '-P', '--avg-pos-fraction', action='store_true', default=False,
+        '-f', '--avg-pos-fraction', action='store_true', default=False,
         help='Append avg position of variant reads as fraction of read length (FORMAT tag: VAPF).'
     )
     extra.add_argument(
@@ -75,11 +75,11 @@ def define_parser():
         help='Append avg mismatches per variant-supporting read as fraction (FORMAT tag: VAMF).'
     )
     extra.add_argument(
-        '-M', '--sum-mismatch-qual', action='store_true', default=False,
+        '-k', '--sum-mismatch-qual', action='store_true', default=False,
         help='Append avg sum of mismatch base qualities for variant reads (FORMAT tag: VAMQS).'
     )
     extra.add_argument(
-        '-Q', '--num-q2-reads', action='store_true', default=False,
+        '-2', '--num-q2-reads', action='store_true', default=False,
         help='Append number of variant-supporting reads containing a Q2 base (FORMAT tag: VAQ2).'
     )
     extra.add_argument(
@@ -286,21 +286,19 @@ def create_vcf_writer(args, vcf_reader, extra_fields=None):
         new_header.add_format_line(OrderedDict([('ID', 'RADF'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'RNA Allelic depths on the forward strand (high-quality bases)')]))
         new_header.add_format_line(OrderedDict([('ID', 'RADR'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'RNA Allelic depths on the reverse strand (high-quality bases)')]))
         new_header.add_format_line(OrderedDict([('ID', 'RAF'), ('Number', 'A'), ('Type', 'Float'), ('Description', 'RNA Variant-allele frequency for the alt alleles')]))
-    seen_extra_tags = set()
     for f in extra_fields:
         if f.tag == 'strand_counts':
             if args.data_type == 'DNA':
                 logging.warning(
-                    '--strand-counts (-S): ADF/ADR are already written in DNA mode; skipping.'
+                    '--strand-counts (-r): ADF/ADR are already written in DNA mode; skipping.'
                 )
             else:
                 new_header.add_format_line(OrderedDict([('ID', 'ADF'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'Allelic depths on the forward strand')]))
                 new_header.add_format_line(OrderedDict([('ID', 'ADR'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'Allelic depths on the reverse strand')]))
-        elif f.tag not in seen_extra_tags:
+        else:
             new_header.add_format_line(OrderedDict([
                 ('ID', f.tag), ('Number', f.number), ('Type', f.vcf_type), ('Description', f.desc),
             ]))
-            seen_extra_tags.add(f.tag)
     return vcfpy.Writer.from_path(output_file, new_header)
 
 def write_depth(entry, sample_name, field, value):
