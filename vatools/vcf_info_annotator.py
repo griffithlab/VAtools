@@ -12,6 +12,7 @@ def to_array(dictionary):
     return sorted(array)
 
 def column_mappings_type():
+    valid_types = ['Integer', 'Float', 'Flag', 'Character', 'String']
     def column_mappings_checker(arg):
         mappings = []
         for item in arg.split(','):
@@ -19,6 +20,10 @@ def column_mappings_type():
             if len(parts) < 4 or len(parts) > 6:
                 raise argparse.ArgumentTypeError(
                     "Invalid column mapping '{}'. Expected format: source_col:info_field:type:description[:source[:version]]".format(item)
+                )
+            if parts[2] not in valid_types:
+                raise argparse.ArgumentTypeError(
+                    "Invalid type '{}' in column mapping '{}'. Valid types are: {}".format(parts[2], item, ', '.join(valid_types))
                 )
             mappings.append({
                 'source_col':  parts[0],

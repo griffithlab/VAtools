@@ -39,6 +39,15 @@ class VcfInfoEncoderTests(unittest.TestCase):
             ])
         self.assertEqual(context.exception.code, 2)
 
+    def test_error_invalid_column_mapping_type(self):
+        with self.assertRaises(SystemExit) as context:
+            vcf_info_annotator.main([
+                os.path.join(self.test_data_dir, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'info.tsv'),
+                '-m', 'value:TEST:int:test',
+            ])
+        self.assertEqual(context.exception.code, 2)
+
     def test_simple_caseq(self):
         temp_path = tempfile.TemporaryDirectory()
         command = [
