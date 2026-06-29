@@ -301,7 +301,7 @@ def create_vcf_writer(args, vcf_reader, extra_fields=None):
             ]))
     return vcfpy.Writer.from_path(output_file, new_header)
 
-def write_depth(entry, sample_name, field, value):
+def add_format_value(entry, sample_name, field, value):
     if field not in entry.FORMAT:
         entry.FORMAT += [field]
     entry.call_for_sample[sample_name].data[field] = value
@@ -367,7 +367,7 @@ def main(args_input = sys.argv[1:]):
         (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alts[0].serialize(), entry.POS)
         brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
         if brct is None:
-            write_depth(entry, sample_name, depth_field, 0)
+            add_format_value(entry, sample_name, depth_field, 0)
             if frequency_field not in entry.FORMAT:
                 entry.FORMAT += [frequency_field]
             vafs = [0] * len(alts)
@@ -389,7 +389,7 @@ def main(args_input = sys.argv[1:]):
 
         #DP - read depth
         depth = brct['depth']
-        write_depth(entry, sample_name, depth_field, depth)
+        add_format_value(entry, sample_name, depth_field, depth)
 
         #If `depth` is the only key in this hash, then this must have
         #been a duplicate bam-readcount entry where only the depths matched.
@@ -453,11 +453,11 @@ def main(args_input = sys.argv[1:]):
                     if args.data_type != 'DNA':
                         ref_q = primary_brct['qualities'].get(primary_ref_base, {})
                         var_q = primary_brct['qualities'].get(primary_var_base, {})
-                        write_depth(entry, sample_name, 'ADF', [
+                        add_format_value(entry, sample_name, 'ADF', [
                             int(float(ref_q.get('num_plus_strand', '0'))),
                             int(float(var_q.get('num_plus_strand', '0'))),
                         ])
-                        write_depth(entry, sample_name, 'ADR', [
+                        add_format_value(entry, sample_name, 'ADR', [
                             int(float(ref_q.get('num_minus_strand', '0'))),
                             int(float(var_q.get('num_minus_strand', '0'))),
                         ])
@@ -468,7 +468,7 @@ def main(args_input = sys.argv[1:]):
                         val = int(float(raw)) if f.vcf_type == 'Integer' else float(raw)
                     else:
                         val = None
-                    write_depth(entry, sample_name, f.tag, val)
+                    add_format_value(entry, sample_name, f.tag, val)
 
         vcf_writer.write_record(entry)
 
