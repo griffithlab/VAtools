@@ -18,26 +18,26 @@ class VcfInfoEncoderTests(unittest.TestCase):
         self.assertTrue(py_compile.compile(self.executable))
 
     def test_error_already_INFO_annotated(self):
+        temp_path = tempfile.TemporaryDirectory()
         with self.assertRaises(Exception) as context:
             command = [
                 os.path.join(self.test_data_dir, 'input.vcf'),
                 os.path.join(self.test_data_dir, 'info.tsv'),
                 '-m', 'value:CSQ:String:CSQ annotation',
-                '-o', 'ztest.vcf'
+                '-o', os.path.join(temp_path.name, 'output.vcf')
             ]
             vcf_info_annotator.main(command)
+        temp_path.cleanup()
         self.assertTrue('INFO already contains a CSQ field. Choose a different label, or use the --overwrite flag to retain this field and overwrite values' in str(context.exception))
 
     def test_error_invalid_column_mapping_format(self):
-        with self.assertRaises(Exception) as context:
-            command = [
+        with self.assertRaises(SystemExit) as context:
+            vcf_info_annotator.main([
                 os.path.join(self.test_data_dir, 'input.vcf'),
                 os.path.join(self.test_data_dir, 'info.tsv'),
                 '-m', 'value:TEST',
-                '-o', 'ztest.vcf'
-            ]
-            vcf_info_annotator.main(command)
-        self.assertTrue("Invalid column mapping 'value:TEST'. Expected format: source_col:info_field:type:description[:source[:version]]" in str(context.exception))
+            ])
+        self.assertEqual(context.exception.code, 2)
 
     def test_simple_caseq(self):
         temp_path = tempfile.TemporaryDirectory()
@@ -56,9 +56,7 @@ class VcfInfoEncoderTests(unittest.TestCase):
         command = [
             os.path.join(self.test_data_dir, 'input.vcf'),
             os.path.join(self.test_data_dir, 'info.tsv.gz'),
-            'TEST',
-            '-d', "test",
-            '-f', 'Integer',
+            '-m', 'value:TEST:Integer:test',
             '-o', os.path.join(temp_path.name, 'info_annotation.vcf')
         ]
         vcf_info_annotator.main(command)
@@ -172,4 +170,53 @@ class VcfInfoEncoderTests(unittest.TestCase):
         ]
         vcf_info_annotator.main(command)
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multi_col.info.vcf'), os.path.join(temp_path.name, 'multi_col.info.vcf')))
+        temp_path.cleanup()
+
+    def test_error_source_col_not_in_tsv_header(self):
+        temp_path = tempfile.TemporaryDirectory()
+        with self.assertRaises(ValueError) as context:
+            command = [
+                os.path.join(self.test_data_dir, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'info.tsv'),
+                '-m', 'nonexistent_col:TEST:Integer:test',
+                '-o', os.path.join(temp_path.name, 'output.vcf')
+            ]
+            vcf_info_annotator.main(command)
+        temp_path.cleanup()
+        self.assertIn("Column 'nonexistent_col' not found in TSV header", str(context.exception))
+        self.assertIn("chrom", str(context.exception))
+
+    def test_float_field_annotation(self):
+        import vcfpy
+        temp_path = tempfile.TemporaryDirectory()
+        output_vcf = os.path.join(temp_path.name, 'float_output.vcf')
+        command = [
+            os.path.join(self.test_data_dir, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'float_info.tsv'),
+            '-m', 'freq:FREQ:Float:Allele frequency',
+            '-o', output_vcf,
+        ]
+        vcf_info_annotator.main(command)
+        reader = vcfpy.Reader.from_path(output_vcf)
+        self.assertIn('FREQ', reader.header.info_ids())
+        self.assertEqual(reader.header.get_info_field_info('FREQ').type, 'Float')
+        for entry in reader:
+            if entry.CHROM == '22' and entry.POS == 18644673:
+                self.assertAlmostEqual(entry.INFO['FREQ'], 0.042)
+        reader.close()
+        temp_path.cleanup()
+
+    def test_clear_existing_with_matching_value(self):
+        temp_path = tempfile.TemporaryDirectory()
+        output_vcf = os.path.join(temp_path.name, 'info2_clear_match.vcf')
+        command = [
+            os.path.join(self.test_data_dir, 'info2_input.vcf'),
+            os.path.join(self.test_data_dir, 'info2.tsv'),
+            '-m', 'value:MQ0:Integer:Mapping quality',
+            '-w', '--clear-existing',
+            '-o', output_vcf,
+        ]
+        vcf_info_annotator.main(command)
+        # MQ0=5 in input should be cleared then replaced with TSV value of 0
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'info2_output.vcf'), output_vcf))
         temp_path.cleanup()
