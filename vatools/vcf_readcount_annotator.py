@@ -5,10 +5,11 @@ import re
 import vcfpy
 import tempfile
 import csv
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 import logging
 from vatools.utils import open_maybe_gz
 
+# parse the input params
 def define_parser():
     parser = argparse.ArgumentParser(
         'vcf-readcount-annotator',
@@ -44,19 +45,109 @@ def define_parser():
         choices=['snv', 'indel', 'all'],
         default='all'
     )
+    extra = parser.add_argument_group('extra bam-readcount fields')
+    extra.add_argument(
+        '-a', '--all-fields', action='store_true', default=False,
+        help='Append all extra bam-readcount fields to the output.'
+    )
+    extra.add_argument(
+        '-q', '--avg-mapping-quality', action='store_true', default=False,
+        help='Append avg mapping quality of variant-supporting reads (FORMAT tag: VAMQ).'
+    )
+    extra.add_argument(
+        '-b', '--avg-basequality', action='store_true', default=False,
+        help='Append avg base quality of variant-supporting reads (FORMAT tag: VABQ).'
+    )
+    extra.add_argument(
+        '-e', '--avg-se-mapping-quality', action='store_true', default=False,
+        help='Append avg SE mapping quality of variant-supporting reads (FORMAT tag: VASEMQ).'
+    )
+    extra.add_argument(
+        '-r', '--strand-counts', action='store_true', default=False,
+        help='Append ref and var forward/reverse strand read counts (FORMAT tags: ADF, ADR). '
+             'In DNA mode ADF/ADR are already written; this flag is a no-op with a warning.'
+    )
+    extra.add_argument(
+        '-f', '--avg-pos-fraction', action='store_true', default=False,
+        help='Append avg position of variant reads as fraction of read length (FORMAT tag: VAPF).'
+    )
+    extra.add_argument(
+        '-m', '--avg-mismatches', action='store_true', default=False,
+        help='Append avg mismatches per variant-supporting read as fraction (FORMAT tag: VAMF).'
+    )
+    extra.add_argument(
+        '-k', '--sum-mismatch-qual', action='store_true', default=False,
+        help='Append avg sum of mismatch base qualities for variant reads (FORMAT tag: VAMQS).'
+    )
+    extra.add_argument(
+        '-2', '--num-q2-reads', action='store_true', default=False,
+        help='Append number of variant-supporting reads containing a Q2 base (FORMAT tag: VAQ2).'
+    )
+    extra.add_argument(
+        '-d', '--avg-q2-distance', action='store_true', default=False,
+        help='Append avg distance to Q2 start in Q2-containing reads (FORMAT tag: VAQD).'
+    )
+    extra.add_argument(
+        '-c', '--avg-clipped-length', action='store_true', default=False,
+        help='Append avg clipped read length for variant-supporting reads (FORMAT tag: VACL).'
+    )
+    extra.add_argument(
+        '-3', '--avg-3p-distance', action='store_true', default=False,
+        help="Append avg distance to effective 3' end for variant reads (FORMAT tag: VA3P)."
+    )
     return parser
 
+# create an object to hold all of the accessory information about the bam-readcount columns:
+#   brct_col: column name in bam-readcount per-base output (None for composite fields)
+#   arg_name: argument name
+#   tag:      VCF FORMAT tag, or 'strand_counts' for the ADF/ADR pair
+#   vcf_type, number, desc: VCF header values (empty strings for the strand_counts)
+ExtraField = namedtuple('ExtraField', ['brct_col', 'arg_name', 'tag', 'vcf_type', 'number', 'desc'])
+
+EXTRA_FIELDS = [
+    ExtraField('avg_mapping_quality',                 'avg_mapping_quality',    'VAMQ',         'Float',   '1', 'Avg mapping quality for variant-supporting reads'),
+    ExtraField('avg_basequality',                     'avg_basequality',        'VABQ',         'Float',   '1', 'Avg base quality for variant-supporting reads'),
+    ExtraField('avg_se_mapping_quality',              'avg_se_mapping_quality', 'VASEMQ',       'Float',   '1', 'Avg SE mapping quality for variant-supporting reads'),
+    ExtraField(None,                                  'strand_counts',          'strand_counts','',        '',  ''),
+    ExtraField('avg_pos_as_fraction',                 'avg_pos_fraction',       'VAPF',         'Float',   '1', 'Avg position of variant reads as fraction of read length'),
+    ExtraField('avg_num_mismatches_as_fraction',      'avg_mismatches',         'VAMF',         'Float',   '1', 'Avg mismatches per variant-supporting read as fraction'),
+    ExtraField('avg_sum_mismatch_qualities',          'sum_mismatch_qual',      'VAMQS',        'Float',   '1', 'Avg sum of mismatch base qualities for variant reads'),
+    ExtraField('num_q2_containing_reads',             'num_q2_reads',           'VAQ2',         'Integer', '1', 'Number of variant reads containing a Q2 base'),
+    ExtraField('avg_distance_to_q2_start_in_q2_reads','avg_q2_distance',        'VAQD',         'Float',   '1', 'Avg distance to Q2 start in Q2-containing reads'),
+    ExtraField('avg_clipped_length',                  'avg_clipped_length',     'VACL',         'Float',   '1', 'Avg clipped read length for variant-supporting reads'),
+    ExtraField('avg_distance_to_effective_3p_end',    'avg_3p_distance',        'VA3P',         'Float',   '1', "Avg distance to effective 3' end for variant reads"),
+]
+
+def get_requested_extra_fields(args):
+    if getattr(args, 'all_fields', False):
+        return list(EXTRA_FIELDS)
+    return [f for f in EXTRA_FIELDS if getattr(args, f.arg_name, False)]
+
+# parse the fields out for the detailed metrics
 def parse_brct_field(brcts):
+    # Column names match bam-readcount per-base output order
+    quality_cols = (
+        'avg_mapping_quality', 'avg_basequality', 'avg_se_mapping_quality',
+        'num_plus_strand', 'num_minus_strand',
+        'avg_pos_as_fraction', 'avg_num_mismatches_as_fraction',
+        'avg_sum_mismatch_qualities', 'num_q2_containing_reads',
+        'avg_distance_to_q2_start_in_q2_reads',
+        'avg_clipped_length', 'avg_distance_to_effective_3p_end',
+    )
     counts = {}
     forward_counts = {}
     reverse_counts = {}
+    qualities = {}
     for brct in brcts:
-        (base, count, avg_mapping_quality, avg_basequality, avg_se_mapping_quality, num_plus_strand, num_minus_strand, rest) = brct.split(':', 7)
-        counts[base.upper()] = count
-        forward_counts[base.upper()] = num_plus_strand
-        reverse_counts[base.upper()] = num_minus_strand
-    return counts, forward_counts, reverse_counts
+        parts = brct.split(':')
+        base = parts[0].upper()
+        counts[base] = parts[1]
+        qualities[base] = dict(zip(quality_cols, parts[2:]))
+        forward_counts[base] = qualities[base].get('num_plus_strand', '0')
+        reverse_counts[base] = qualities[base].get('num_minus_strand', '0')
+    return counts, forward_counts, reverse_counts, qualities
 
+# read the bam readcount file
 def parse_bam_readcount_file(args):
     coverage = {}
     with open_maybe_gz(args.bam_readcount_file) as reader:
@@ -67,11 +158,12 @@ def parse_bam_readcount_file(args):
             reference_base = row[2].upper()
             depth          = row[3]
             brct           = row[4:]
-            counts, forward_counts, reverse_counts = parse_brct_field(brct)
+            counts, forward_counts, reverse_counts, qualities = parse_brct_field(brct)
             parsed_brct = {
                 'counts': counts,
                 'forward_counts': forward_counts,
                 'reverse_counts': reverse_counts,
+                'qualities': qualities,
                 'depth': depth
             }
             if (chromosome, position, reference_base) in coverage and parsed_brct != coverage[(chromosome,position,reference_base)]:
@@ -168,7 +260,9 @@ def create_vcf_reader(args):
         sample_name = vcf_reader.header.samples.names[0]
     return vcf_reader, sample_name
 
-def create_vcf_writer(args, vcf_reader):
+def create_vcf_writer(args, vcf_reader, extra_fields=None):
+    if extra_fields is None:
+        extra_fields = []
     if args.output_vcf:
         output_file = args.output_vcf
     else:
@@ -193,9 +287,22 @@ def create_vcf_writer(args, vcf_reader):
         new_header.add_format_line(OrderedDict([('ID', 'RADF'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'RNA Allelic depths on the forward strand (high-quality bases)')]))
         new_header.add_format_line(OrderedDict([('ID', 'RADR'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'RNA Allelic depths on the reverse strand (high-quality bases)')]))
         new_header.add_format_line(OrderedDict([('ID', 'RAF'), ('Number', 'A'), ('Type', 'Float'), ('Description', 'RNA Variant-allele frequency for the alt alleles')]))
+    for f in extra_fields:
+        if f.tag == 'strand_counts':
+            if args.data_type == 'DNA':
+                logging.warning(
+                    '--strand-counts (-r): ADF/ADR are already written in DNA mode; skipping.'
+                )
+            else:
+                new_header.add_format_line(OrderedDict([('ID', 'ADF'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'Allelic depths on the forward strand')]))
+                new_header.add_format_line(OrderedDict([('ID', 'ADR'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'Allelic depths on the reverse strand')]))
+        else:
+            new_header.add_format_line(OrderedDict([
+                ('ID', f.tag), ('Number', f.number), ('Type', f.vcf_type), ('Description', f.desc),
+            ]))
     return vcfpy.Writer.from_path(output_file, new_header)
 
-def write_depth(entry, sample_name, field, value):
+def add_format_value(entry, sample_name, field, value):
     if field not in entry.FORMAT:
         entry.FORMAT += [field]
     entry.call_for_sample[sample_name].data[field] = value
@@ -205,8 +312,9 @@ def main(args_input = sys.argv[1:]):
     args = parser.parse_args(args_input)
 
     read_counts = parse_bam_readcount_file(args)
+    extra_fields = get_requested_extra_fields(args)
     (vcf_reader, sample_name) = create_vcf_reader(args)
-    vcf_writer = create_vcf_writer(args, vcf_reader)
+    vcf_writer = create_vcf_writer(args, vcf_reader, extra_fields)
 
     if args.data_type == 'DNA':
         depth_field = 'DP'
@@ -260,7 +368,7 @@ def main(args_input = sys.argv[1:]):
         (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alts[0].serialize(), entry.POS)
         brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
         if brct is None:
-            write_depth(entry, sample_name, depth_field, 0)
+            add_format_value(entry, sample_name, depth_field, 0)
             if frequency_field not in entry.FORMAT:
                 entry.FORMAT += [frequency_field]
             vafs = [0] * len(alts)
@@ -282,7 +390,7 @@ def main(args_input = sys.argv[1:]):
 
         #DP - read depth
         depth = brct['depth']
-        write_depth(entry, sample_name, depth_field, depth)
+        add_format_value(entry, sample_name, depth_field, depth)
 
         #If `depth` is the only key in this hash, then this must have
         #been a duplicate bam-readcount entry where only the depths matched.
@@ -290,6 +398,10 @@ def main(args_input = sys.argv[1:]):
         if len(brct.keys()) == 1 and list(brct.keys())[0] == 'depth':
             vcf_writer.write_record(entry)
             continue
+
+        primary_brct = brct
+        primary_ref_base = ref_base
+        primary_var_base = var_base
 
         #AF - variant allele frequencies
         if frequency_field not in entry.FORMAT:
@@ -330,6 +442,34 @@ def main(args_input = sys.argv[1:]):
                 else:
                     ads.append(0)
             entry.call_for_sample[sample_name].data[field_name] = ads
+
+        # Skip the whole block if no extra fields were requested, or if the bam-readcount entry doesn't have per-base quality data
+        if extra_fields and 'qualities' in primary_brct:
+            for f in extra_fields:
+                # strand_counts maps to two VCF tags (ADF/ADR) instead of one, so it can't follow the same path
+                # as the other extra fields. It's also skipped in DNA mode because ADF/ADR are already written
+                # earlier in the function as standard fields. In RNA mode they aren't written by default, so 
+                # this is where they get added.
+                if f.tag == 'strand_counts':
+                    if args.data_type != 'DNA':
+                        ref_q = primary_brct['qualities'].get(primary_ref_base, {})
+                        var_q = primary_brct['qualities'].get(primary_var_base, {})
+                        add_format_value(entry, sample_name, 'ADF', [
+                            int(float(ref_q.get('num_plus_strand', '0'))),
+                            int(float(var_q.get('num_plus_strand', '0'))),
+                        ])
+                        add_format_value(entry, sample_name, 'ADR', [
+                            int(float(ref_q.get('num_minus_strand', '0'))),
+                            int(float(var_q.get('num_minus_strand', '0'))),
+                        ])
+                else:
+                    var_q = primary_brct['qualities'].get(primary_var_base, {})
+                    raw = var_q.get(f.brct_col, None)
+                    if raw is not None:
+                        val = int(float(raw)) if f.vcf_type == 'Integer' else float(raw)
+                    else:
+                        val = None
+                    add_format_value(entry, sample_name, f.tag, val)
 
         vcf_writer.write_record(entry)
 
