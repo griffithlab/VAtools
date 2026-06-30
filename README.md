@@ -1,3 +1,10 @@
+![Test Status](https://github.com/griffithlab/VAtools/actions/workflows/tests.yml/badge.svg)
+[![Docs](https://readthedocs.org/projects/pvactools/badge/?version=latest)](http://vatools.readthedocs.io/en/latest/?badge=latest)
+<a href="https://pypi.python.org/pypi/vatools/">
+    <img src="https://img.shields.io/pypi/v/vatools.svg?maxAge=1000" alt="PyPI" />
+</a>
+
+
 # VCF Annotation Tools (VAtools)
 
 VCF Annotation Tools is a python package that includes several tools to annotate VCF files with data from other tools.
@@ -39,3 +46,11 @@ Please see [vatools.org](http://vatools.org) for the full documentation.
 ## Install
 
 `pip install vatools`
+
+## Container images
+
+VAtools is available as a Docker Image at <a href="https://hub.docker.com/r/griffithlab/vatools/">DockerHub griffithlab/vatools</a>.
+
+## Stable release with DOI
+
+[![DOI](https://img.shields.io/badge/DOI-10.5281/zenodo.21079855-blue)](https://doi.org/10.5281/zenodo.21079855)
