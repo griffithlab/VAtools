@@ -6,13 +6,16 @@ from vatools import vcf_info_annotator
 from vatools.vcf_info_annotator import coerce_value
 import tempfile
 from filecmp import cmp
+import shutil
+from strtobool import strtobool
 
-class VcfInfoEncoderTests(unittest.TestCase):
+class VcfInfoAnnotatorTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         base_dir          = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
         cls.executable    = os.path.join(base_dir, 'vatools', 'vcf_info_annotator.py')
         cls.test_data_dir = os.path.join(base_dir, 'tests', 'test_data')
+        cls.REGENERATE_TEST_DATA = strtobool(os.environ.get('REGENERATE_TEST_DATA', 'false'))
 
     def test_source_compiles(self):
         self.assertTrue(py_compile.compile(self.executable))
@@ -69,6 +72,11 @@ class VcfInfoEncoderTests(unittest.TestCase):
             '-o', os.path.join(temp_path.name, 'info_annotation.vcf')
         ]
         vcf_info_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'info_annotation.vcf'),
+                os.path.join(self.test_data_dir, 'info_annotation.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'info_annotation.vcf'), os.path.join(temp_path.name, 'info_annotation.vcf')))
         temp_path.cleanup()
 
@@ -81,6 +89,11 @@ class VcfInfoEncoderTests(unittest.TestCase):
             '-o', os.path.join(temp_path.name, 'info3_output.vcf')
         ]
         vcf_info_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'info3_output.vcf'),
+                os.path.join(self.test_data_dir, 'info3_output.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'info3_output.vcf'), os.path.join(temp_path.name, 'info3_output.vcf')))
         temp_path.cleanup()
 
@@ -94,6 +107,11 @@ class VcfInfoEncoderTests(unittest.TestCase):
             '-o', os.path.join(temp_path.name, 'info2_output.vcf')
         ]
         vcf_info_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'info2_output.vcf'),
+                os.path.join(self.test_data_dir, 'info2_output.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'info2_output.vcf'), os.path.join(temp_path.name, 'info2_output.vcf')))
         temp_path.cleanup()
 
@@ -107,6 +125,11 @@ class VcfInfoEncoderTests(unittest.TestCase):
             '-o', os.path.join(temp_path.name, 'info_annotation.vcf')
         ]
         vcf_info_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'info_annotation.vcf'),
+                os.path.join(self.test_data_dir, 'info_overwrite.vcf'),
+            )
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'info_overwrite.vcf'), os.path.join(temp_path.name, 'info_annotation.vcf')))
         temp_path.cleanup()
 
