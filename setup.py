@@ -20,7 +20,7 @@ setup(
         'vcfpy==0.14.2',
         'pysam',
         'pandas',
-        'gtfparse==1.3.0',
+        'gtfparse==2.7.1',
         'testfixtures',
         'distutils-strtobool',
     ],
