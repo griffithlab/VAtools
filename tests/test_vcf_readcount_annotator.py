@@ -9,13 +9,16 @@ import io
 import logging
 import vcfpy
 from testfixtures import LogCapture, StringComparison as S
+import shutil
+from strtobool import strtobool
 
-class VcfExpressionEncoderTests(unittest.TestCase):
+class VcfReadcountAnnotatorTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         base_dir          = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
         cls.executable    = os.path.join(base_dir, 'vatools', 'vcf_readcount_annotator.py')
         cls.test_data_dir = os.path.join(base_dir, 'tests', 'test_data')
+        cls.REGENERATE_TEST_DATA = strtobool(os.environ.get('REGENERATE_TEST_DATA', 'false'))
 
     def test_source_compiles(self):
         self.assertTrue(py_compile.compile(self.executable))
@@ -50,7 +53,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'DNA',
         ]
         vcf_readcount_annotator.main(command)
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'single_sample.dna.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.readcount.vcf'),
+                os.path.join(self.test_data_dir, 'single_sample.dna.readcount.vcf'),
+            )
+        self.assertTrue(cmp(
+            os.path.join(self.test_data_dir, 'single_sample.dna.readcount.vcf'),
+            os.path.join(temp_path.name, 'input.readcount.vcf')
+        ))
         temp_path.cleanup()
 
     def test_gzipped_bam_readcount_file(self):
@@ -74,7 +85,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'RNA',
         ]
         vcf_readcount_annotator.main(command)
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'single_sample.rna.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.readcount.vcf'),
+                os.path.join(self.test_data_dir, 'single_sample.rna.readcount.vcf'),
+            )
+        self.assertTrue(cmp(
+            os.path.join(self.test_data_dir, 'single_sample.rna.readcount.vcf'),
+            os.path.join(temp_path.name, 'input.readcount.vcf')
+        ))
         temp_path.cleanup()
 
     def test_single_sample_vcf_with_existing_readcount_annotations(self):
@@ -86,7 +105,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'DNA',
         ]
         vcf_readcount_annotator.main(command)
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'single_sample_with_existing_readcount_annotations.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.readcount.vcf'),
+                os.path.join(self.test_data_dir, 'single_sample_with_existing_readcount_annotations.readcount.vcf'),
+            )
+        self.assertTrue(cmp(
+            os.path.join(self.test_data_dir, 'single_sample_with_existing_readcount_annotations.readcount.vcf'),
+            os.path.join(temp_path.name, 'input.readcount.vcf')
+        ))
         temp_path.cleanup()
 
     def test_mutation_without_matching_readcount_value(self):
@@ -98,7 +125,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             'DNA',
         ]
         vcf_readcount_annotator.main(command)
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'no_matching_readcount.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.readcount.vcf'),
+                os.path.join(self.test_data_dir, 'no_matching_readcount.readcount.vcf'),
+            )
+        self.assertTrue(cmp(
+            os.path.join(self.test_data_dir, 'no_matching_readcount.readcount.vcf'),
+            os.path.join(temp_path.name, 'input.readcount.vcf')
+        ))
         temp_path.cleanup()
 
     def test_multi_sample_vcf(self):
@@ -111,7 +146,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             '-s', 'H_NJ-HCC1395-HCC1395',
         ]
         vcf_readcount_annotator.main(command)
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multiple_samples.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.readcount.vcf'),
+                os.path.join(self.test_data_dir, 'multiple_samples.readcount.vcf'),
+            )
+        self.assertTrue(cmp(
+            os.path.join(self.test_data_dir, 'multiple_samples.readcount.vcf'),
+            os.path.join(temp_path.name, 'input.readcount.vcf')
+        ))
         temp_path.cleanup()
 
     def test_multiple_alts(self):
@@ -124,7 +167,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             '-s', 'H_NJ-HCC1395-HCC1396',
         ]
         vcf_readcount_annotator.main(command)
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'multiple_samples_second_alt.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.readcount.vcf'),
+                os.path.join(self.test_data_dir, 'multiple_samples_second_alt.readcount.vcf'),
+            )
+        self.assertTrue(cmp(
+            os.path.join(self.test_data_dir, 'multiple_samples_second_alt.readcount.vcf'),
+            os.path.join(temp_path.name, 'input.readcount.vcf')
+        ))
         temp_path.cleanup()
 
     def test_input_AF_is_of_number_1(self):
@@ -137,6 +188,16 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             '-s', 'TUMOR'
         ]
         vcf_readcount_annotator.main(command)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.readcount.vcf'),
+                os.path.join(self.test_data_dir, 'af_number_1.bam-readcount.readcount.vcf'),
+            )
+        self.assertTrue(cmp(
+            os.path.join(self.test_data_dir, 'af_number_1.bam-readcount.readcount.vcf'),
+            os.path.join(temp_path.name, 'input.readcount.vcf')
+        ))
+        temp_path.cleanup()
 
     def test_hom_ref_genotype(self):
         temp_path = tempfile.TemporaryDirectory()
@@ -148,7 +209,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             '-s', 'NORMAL'
         ]
         vcf_readcount_annotator.main(command)
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'hom_ref.readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.readcount.vcf'),
+                os.path.join(self.test_data_dir, 'hom_ref.readcount.vcf'),
+            )
+        self.assertTrue(cmp(
+            os.path.join(self.test_data_dir, 'hom_ref.readcount.vcf'),
+            os.path.join(temp_path.name, 'input.readcount.vcf')
+        ))
         temp_path.cleanup()
 
     def test_duplicate_bam_readcount_entries_discrepant_depth(self):
@@ -168,7 +237,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             #a list of tuples. grab the relevant (and in this case only) tuple, the first, then combine into one string for comparison
             self.assertTrue(warn_message in logged_str)
 
-            self.assertTrue(cmp(os.path.join(self.test_data_dir, 'duplicate_entries_discrepant_depths.bam_readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+            if self.REGENERATE_TEST_DATA:
+                shutil.copy(
+                    os.path.join(temp_path.name, 'input.readcount.vcf'),
+                    os.path.join(self.test_data_dir, 'duplicate_entries_discrepant_depths.bam_readcount.vcf'),
+                )
+            self.assertTrue(cmp(
+                os.path.join(self.test_data_dir, 'duplicate_entries_discrepant_depths.bam_readcount.vcf'),
+                os.path.join(temp_path.name, 'input.readcount.vcf')
+            ))
         temp_path.cleanup()
 
     def test_duplicate_bam_readcount_entries_same_depth(self):
@@ -186,7 +263,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             logged_str = "".join(l.actual()[0])
             self.assertTrue(warn_message in logged_str)
 
-            self.assertTrue(cmp(os.path.join(self.test_data_dir, 'duplicate_entries_same_depths.bam_readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+            if self.REGENERATE_TEST_DATA:
+                shutil.copy(
+                    os.path.join(temp_path.name, 'input.readcount.vcf'),
+                    os.path.join(self.test_data_dir, 'duplicate_entries_same_depths.bam_readcount.vcf'),
+                )
+            self.assertTrue(cmp(
+                os.path.join(self.test_data_dir, 'duplicate_entries_same_depths.bam_readcount.vcf'),
+                os.path.join(temp_path.name, 'input.readcount.vcf')
+            ))
         temp_path.cleanup()
 
     def test_snv_mode(self):
@@ -200,7 +285,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         ]
         vcf_readcount_annotator.main(command)
 
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'snv_mode.bam_readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.readcount.vcf'),
+                os.path.join(self.test_data_dir, 'snv_mode.bam_readcount.vcf'),
+            )
+        self.assertTrue(cmp(
+            os.path.join(self.test_data_dir, 'snv_mode.bam_readcount.vcf'),
+            os.path.join(temp_path.name, 'input.readcount.vcf')
+        ))
         temp_path.cleanup()
 
     def test_indel_mode(self):
@@ -214,7 +307,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         ]
         vcf_readcount_annotator.main(command)
 
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'indel_mode.bam_readcount.vcf'), os.path.join(temp_path.name, 'input.readcount.vcf')))
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.readcount.vcf'),
+                os.path.join(self.test_data_dir, 'indel_mode.bam_readcount.vcf'),
+            )
+        self.assertTrue(cmp(
+            os.path.join(self.test_data_dir, 'indel_mode.bam_readcount.vcf'),
+            os.path.join(temp_path.name, 'input.readcount.vcf')
+        ))
         temp_path.cleanup()
 
     def test_complex_indel(self):
@@ -228,7 +329,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         ]
         vcf_readcount_annotator.main(command)
 
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'complex_indel.readcount.vcf.gz'), os.path.join(temp_path.name, 'input.readcount.vcf.gz')))
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.readcount.vcf.gz'),
+                os.path.join(self.test_data_dir, 'complex_indel.readcount.vcf.gz'),
+            )
+        self.assertTrue(cmp(
+            os.path.join(self.test_data_dir, 'complex_indel.readcount.vcf.gz'),
+            os.path.join(temp_path.name, 'input.readcount.vcf.gz')
+        ))
         temp_path.cleanup()
 
     def test_mnp(self):
@@ -242,7 +351,15 @@ class VcfExpressionEncoderTests(unittest.TestCase):
         ]
         vcf_readcount_annotator.main(command)
 
-        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'mnp.readcount.vcf.gz'), os.path.join(temp_path.name, 'input.readcount.vcf.gz')))
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.readcount.vcf.gz'),
+                os.path.join(self.test_data_dir, 'mnp.readcount.vcf.gz'),
+            )
+        self.assertTrue(cmp(
+            os.path.join(self.test_data_dir, 'mnp.readcount.vcf.gz'),
+            os.path.join(temp_path.name, 'input.readcount.vcf.gz')
+        ))
         temp_path.cleanup()
 
     def test_extra_field_avg_mapping_quality(self):
