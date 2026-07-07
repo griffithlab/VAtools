@@ -9,7 +9,7 @@ In addition, the type of expression data, either ``gene`` or ``transcript``, nee
 
 The input VCF needs to be annotated with VEP with gene and transcript information so that the VCF Expression Annotator can match a variant's Ensembl gene and transcript identifier in the VCF to the one in the expression file. 
 
-When running in ``gene`` mode, Ensembl IDs - not gene names - are used. Depending on the expression software used, the transcript identifiers might contain version numbers. To add transcript version numbers to your VEP annotation, use the ``--transcript_version`` when running VEP. 
+When running in ``gene`` mode, Ensembl IDs - not gene names - are used. Depending on the expression software used, the Ensembl identifiers might contain version numbers. To add transcript and/or gene version numbers to your VEP annotations, use the ``--transcript_version`` and ``--gene-version`` when running VEP, respectively, as needed. 
 
 You can also use the ``--ignore-ensembl-id-version`` flag of the VCF Expression Annotator to ignore the version of Ensembl gene and transcript IDs when finding the matching entry in your expression file.
 
