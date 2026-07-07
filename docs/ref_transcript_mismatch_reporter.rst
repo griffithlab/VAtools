@@ -3,7 +3,7 @@ Reference Transcript Mismatch Reporter
 
 This tool can be used to identify variants where the reference genome build
 doesn't match the Ensembl reference transcript used by VEP for variant consequence
-annotations. This is problematic, because at this positions, the REF nucleotide(s) at a variant position will differ
+annotations. This is problematic because at these positions the REF nucleotide(s) will differ
 from the Ensembl transcript nucleotide(s) at the corresponding mutation
 position. The end result is that any amino acid change predictions found in the ``Amino_acids``
 field of the VEP CSQ annotation will be different from the translated Ensembl transcript
