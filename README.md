@@ -15,7 +15,7 @@ A tool that will add the data from bam-readcount files to the VCF sample column.
 
 **vcf-expression-annotator**
 
-A tool that will add the data from several expression tools’ output files to the VCF INFO column. Supported tools are StringTie, Kallisto, and Cufflinks. There also is a `custom` option to annotate with data from any tab-delimited file.
+A tool that will add the data from several expression tools’ output files to the VCF FORMAT column, on a per-sample basis (use `-s` to select the sample for multi-sample VCFs). Supported tools are StringTie, Kallisto, and Cufflinks. There also is a `custom` option to annotate with data from any tab-delimited file.
 
 **vcf-info-annotator**
 

@@ -3,49 +3,31 @@ Install
 
 The VAtools suite is written for Linux and Mac OS X.
 If you are using Windows you will need to set up a
-Linux environment, for example by setting up a virtual machine.
+Linux environment, for example by using WSL or setting up a virtual machine.
 
 VAtools requires Python 3.10 or above. Before running any
 installation steps, check the Python version installed on your system:
 
 .. code-block:: none
 
-   python -V
+   python --version
 
-If you don't have Python 3 installed, we recommend using `Conda
-<http://conda.pydata.org/docs/py2or3.html>`_ to emulate a Python 3.
-environment. We've encountered problems with users that already have Python
-2.x installed when they also try to install Python 3. The defaults will
-not be set correctly in that case. If you already have Python 2.x installed
-we **strongly** recommmend using Conda instead of installing Python 3
-locally.
+pip
+---
 
-Once you have set up your Python 3 environment correctly you can use
-``pip`` to install VAtools. Make sure you have ``pip``
-installed. ``pip`` is generally included in python distributions, but may
-need to be upgraded before use. See the `instructions
-<https://packaging.python.org/en/latest/installing/#install-pip-setuptools-and-wheel>`_
-for installing or upgrading ``pip``.
-
-After you have pip installed, type the following command on your Terminal:
+Install VAtools using ``pip``:
 
 .. code-block:: none
 
    pip install vatools
 
-You can check that the ``vatools`` package has been installed
-under the default environment by running this command:
+You can verify the installation with:
 
 .. code-block:: none
 
    pip show vatools
 
-``pip`` will fetch and install VAtools and its dependencies for you.
-After installing, each tool of the VAtools package is available in
-its own command line tree directly from the Terminal.
-
-If you have an old version of the vatools package installed you might
-want to consider upgrading to the latest version:
+To upgrade an existing installation:
 
 .. code-block:: none
 
@@ -56,3 +38,22 @@ Docker
 
 A Docker container for VAtools is available on DockerHub using the
 `griffithlab/vatools <https://hub.docker.com/r/griffithlab/vatools/>`_ repo.
+
+.. code-block:: none
+
+   docker pull griffithlab/vatools
+
+Run any tool inside the container by passing it as the command. For example:
+
+.. code-block:: none
+
+   docker run griffithlab/vatools vcf-readcount-annotator --help
+
+To annotate a VCF with files on your local filesystem, mount the directory
+containing your data as a volume:
+
+.. code-block:: none
+
+   docker run -v /path/to/data:/data griffithlab/vatools \
+     vcf-readcount-annotator /data/input.vcf /data/readcounts.tsv DNA \
+     -o /data/output.vcf

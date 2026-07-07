@@ -1,30 +1,105 @@
 VCF Info Annotator
 ==================
 
-The VCF Info Annotator will add data form a tab-delimited (TSV) file to a
-VCF's INFO column.
+The VCF Info Annotator adds data from a tab-delimited (TSV) file to a
+VCF's INFO column. It supports annotating one or more INFO fields in a
+single run, and can handle any VCF-spec data type.
 
-The TSV file needs to contain three columns in the following order:
+Input TSV format
+----------------
 
-- chromosome
-- position
-- the value for your field at that position
+The TSV file must have a header row. The first two columns must be
+chromosome and position (one-based coordinates, used to match rows to VCF records). Any
+additional columns can be mapped to VCF INFO fields by name.
 
-To define the new INFO field you need to specify a info field name in the
-positional parameters. This term will be used as the ID field in the INFO
-header. You will also need to specify a description in quotes that will be
-used as the Description field in the INFO header. Lastly, you will need to
-specify the format of your data. This can be either be ``Integer``, ``Float``,
-``Flag``, ``Character``, or ``String``.
+Example TSV with two data columns::
 
-Optional, you can also set the Source and Version fields of the INFO header
-using the ``--source`` and ``--version`` parameters, respectively.
+   chrom   pos         freq    classification
+   chr1    168192360   0.042   benign
+   chr1    230456789   0.187   pathogenic
 
-By default the output VCF will be written to a ``.info.vcf`` file next to
-your input VCF file. You can set a different output file using the
-``--output-vcf`` parameter.
+Gzip-compressed TSV files (``.tsv.gz``) are also accepted.
+
+Defining column mappings
+------------------------
+
+Use the ``-m`` / ``--column-mappings`` flag to specify how TSV columns
+map to VCF INFO fields. Each mapping is a colon-delimited string with
+four required fields and two optional fields:
+
+.. code-block:: none
+
+   source_col:info_field:type:description[:source[:version]]
+
+- **source_col** — the column name in the TSV header
+- **info_field** — the ID to use for the INFO field in the VCF
+- **type** — the VCF data type: ``Integer``, ``Float``, ``Flag``, ``Character``, or ``String``
+- **description** — free-text description written to the INFO header line
+- **source** *(optional)* — the source database or tool name
+- **version** *(optional)* — the source version (requires source to be set)
+
+To annotate multiple INFO fields in one run, separate mappings with a
+comma:
+
+.. code-block:: none
+
+   -m "col1:FIELD1:type:description,col2:FIELD2:type:description"
+
+Overwriting existing fields
+---------------------------
+
+By default, the tool raises an error if the VCF already contains an
+INFO field with the same ID as a mapped field. Use ``--overwrite``
+(``-w``) to allow writing to existing fields.
+
+``--clear-existing`` extends this behavior: when set, the existing value
+is removed from **every** record before annotation, so records that have
+no matching TSV entry will have no value for that field rather than
+retaining the old one. ``--clear-existing`` requires ``--overwrite``.
+
+Output
+------
+
+By default the output VCF is written to a ``.info.vcf`` file next to
+your input VCF. Use ``--output-vcf`` to specify a different path.
 
 Usage
 -----
 
 .. program-output:: vcf-info-annotator -h
+
+Example Commands
+----------------
+
+Annotate a single Float field:
+
+.. code-block:: none
+
+   vcf-info-annotator input.vcf annotations.tsv \
+     -m "freq:FREQ:Float:Population allele frequency" \
+     -o output.vcf
+
+Annotate two fields in one run:
+
+.. code-block:: none
+
+   vcf-info-annotator input.vcf annotations.tsv \
+     -m "freq:FREQ:Float:Allele frequency,class:CVCLASS:String:ClinVar classification" \
+     -o output.vcf
+
+Include source and version in the INFO header:
+
+.. code-block:: none
+
+   vcf-info-annotator input.vcf annotations.tsv \
+     -m "freq:FREQ:Float:Population frequency:dbSNP:156" \
+     -o output.vcf
+
+Overwrite an existing field, clearing it from records not in the TSV:
+
+.. code-block:: none
+
+   vcf-info-annotator input.vcf annotations.tsv \
+     -m "score:MQ0:Integer:Mapping quality score" \
+     -w --clear-existing \
+     -o output.vcf

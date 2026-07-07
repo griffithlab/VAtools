@@ -1,9 +1,7 @@
 VEP Annotation Reporter
 =======================
 
-VEP annotations in a VCF can be difficult to read and interpret. We developed
-the VEP Annotation Report to aid in converting VEP annotation fields to a
-human-readable report.
+VEP annotations in a VCF are condensed into a CSQ field that is meant to be machine-readable, and can be difficult for humans to read and interpret. We developed the VEP Annotation Reporter to address this issue.
 
 The VEP Annotation Reporter will create a tab-delimited (TSV) file of
 variants in a VCF and their VEP annotations. The VEP fields to add to the
@@ -13,22 +11,15 @@ input VCF can be identified by inspecting the ``Description`` field of the
 ``CSQ`` ``INFO`` header in the VCF. Everything after ``Format:`` is a field
 available in the VCF (delimited by ``|``).
 
-If a variant is annotate with multiple transcript consequences by VEP then the
-values for all transcript annotation will be returned as comma-separated
-values. This is the default behavior unless VEP was run with
-one of the ``--flag_pick`` options, all possible transcript consequences will be
-reported by VEP but only one of these consequences will be picked by VEP as the
-"best" consequence. This is denoted in the ``PICK`` field. If this field is
-available, then the values for that transcript will be reported. For some
-variants, VCFs annotated with the ``PICK`` field might not report any of the
-consequences as picked. In that case, the values for all transcript consequences are
-reported.
+By default, VEP annotates each variant with it's consequences in every transcript it intersects. In this case, the values for all transcript annotation will be returned as comma-separated values. 
+
+If VEP was run with one of the ``--flag_pick`` options, then it has labelled one of the consequences as the "best", and set the ``PICK`` field. If this field is
+available, then only the values for that transcript will be reported. If no variant is set with the ``PICK`` field, then the values for all transcript consequences are reported.
 
 VEP annotations can also be added to an existing TSV with variant
 information by using the ``--input-tsv`` option. In order to match
-the variants in the TSV to the variants in the
-VCF, the existing TSV file will need to contain columns with the headers
-``CHROM``, ``POS``, ``REF``, and ``ALT`` where the values match the VCF
+the variants between the TSV and VCF, the existing TSV file will need to contain columns with the headers
+``CHROM``, ``POS``, ``REF``, and ``ALT`` where the values exactly match the VCF
 ``CHROM``, ``POS``, ``REF``, and ``ALT`` values.
 
 By default the output TSV will be written to a ``.tsv`` file next to
