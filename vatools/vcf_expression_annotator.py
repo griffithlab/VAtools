@@ -6,6 +6,39 @@ import re
 from collections import OrderedDict
 from gtfparse import read_gtf
 import logging
+from vatools.utils import open_maybe_gz
+
+def sniff_stringtie_format(path):
+    #Look at the first non-blank, non-comment line to tell a StringTie gene
+    #abundance TSV (header starting with the literal column `Gene ID`) apart
+    #from a StringTie transcript GTF (9 tab-separated columns, the last of
+    #which holds `gene_id "..."`-style attributes). Returns None if neither
+    #filetype is recognized, so callers don't warn on unrecognized input.
+    with open_maybe_gz(path) as f:
+        for line in f:
+            line = line.rstrip('\n')
+            if line == '' or line.startswith('#'):
+                continue
+            fields = line.split('\t')
+            if fields[0] == 'Gene ID':
+                return 'tsv'
+            if len(fields) == 9 and 'gene_id "' in fields[8]:
+                return 'gtf'
+            return None
+    return None
+
+def check_stringtie_file_format(args):
+    detected_format = sniff_stringtie_format(args.expression_file)
+    if args.mode == 'gene' and detected_format == 'gtf':
+        logging.warning(
+            'You provided a GTF file, but stringtie gene annotation is typically in tsv format. '
+            'Did you mean to provide the "transcript" option?'
+        )
+    elif args.mode == 'transcript' and detected_format == 'tsv':
+        logging.warning(
+            'You provided a TSV file, but stringtie transcript annotation is typically in gtf format. '
+            'Did you mean to provide the "gene" option?'
+        )
 
 def resolve_id_column(args):
     if args.format == 'cufflinks':
@@ -53,6 +86,8 @@ def to_array(dictionary):
     return sorted(array)
 
 def parse_expression_file(args, vcf_reader, vcf_writer):
+    if args.format == 'stringtie':
+        check_stringtie_file_format(args)
     if args.format == 'stringtie' and args.mode == 'transcript':
         df_all = read_gtf(args.expression_file, usecols=['reference_id', 'transcript_id', 'TPM', 'feature'])
         df = df_all[df_all["feature"] == "transcript"]

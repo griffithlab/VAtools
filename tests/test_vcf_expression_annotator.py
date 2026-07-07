@@ -338,6 +338,50 @@ class VcfExpressionAnnotatorTests(unittest.TestCase):
         self.assertTrue(cmp(os.path.join(self.test_data_dir, 'input.stringtie.tx.vcf'), os.path.join(temp_path.name, 'input.tx.vcf')))
         temp_path.cleanup()
 
+    def test_stringtie_gtf_file_with_gene_mode_warns(self):
+        with LogCapture() as l:
+            temp_path = tempfile.TemporaryDirectory()
+            os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+            command = [
+                os.path.join(temp_path.name, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'transcripts.gtf'),
+                'stringtie',
+                'gene',
+            ]
+            with self.assertRaises(Exception):
+                vcf_expression_annotator.main(command)
+            temp_path.cleanup()
+            l.check_present(('root', 'WARNING', 'You provided a GTF file, but stringtie gene annotation is typically in tsv format. Did you mean to provide the "transcript" option?'))
+
+    def test_stringtie_tsv_file_with_transcript_mode_warns(self):
+        with LogCapture() as l:
+            temp_path = tempfile.TemporaryDirectory()
+            os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+            command = [
+                os.path.join(temp_path.name, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'genes.tsv'),
+                'stringtie',
+                'transcript',
+            ]
+            with self.assertRaises(Exception):
+                vcf_expression_annotator.main(command)
+            temp_path.cleanup()
+            l.check_present(('root', 'WARNING', 'You provided a TSV file, but stringtie transcript annotation is typically in gtf format. Did you mean to provide the "gene" option?'))
+
+    def test_stringtie_format_matches_mode_does_not_warn(self):
+        with LogCapture() as l:
+            temp_path = tempfile.TemporaryDirectory()
+            os.symlink(os.path.join(self.test_data_dir, 'input.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+            command = [
+                os.path.join(temp_path.name, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'genes.tsv'),
+                'stringtie',
+                'gene',
+            ]
+            vcf_expression_annotator.main(command)
+            temp_path.cleanup()
+            l.check()
+
     def test_kallisto_with_transcript_version_in_vcf(self):
         temp_path = tempfile.TemporaryDirectory()
         os.symlink(os.path.join(self.test_data_dir, 'input.transcript_version.vcf'), os.path.join(temp_path.name, 'input.vcf'))
