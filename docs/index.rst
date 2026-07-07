@@ -29,7 +29,7 @@ annotate VCF files with data from other tools.
 **vcf-genotype-annotator**
     A tool to add a new sample to an existing VCF file or fill in the GT field
     for an existing sample in a VCF. Fills a need for genotype manipulation in
-    VCFs that don't contain one, but causes downstream tools to choke.
+    VCFs that don't contain one, which can cause errors in downstream tools.
 
 **vep-annotation-reporter**
     A tool to parse the complex `VEP <https://www.ensembl.org/vep>`_-added CSQ field from a VCF and create a tab-delimited (TSV) file of variants and their VEP annotations.
