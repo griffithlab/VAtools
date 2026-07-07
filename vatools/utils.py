@@ -11,14 +11,19 @@ def open_maybe_gz(path, mode='r'):
     return open(path, mode)
 
 # vcfpy>=0.14 requires every FORMAT field with Number != 1 to have a list
-# value (even when missing) for every sample in the record. Some tools 
+# value (even when missing) for every sample in the record. Some tools
 # only populate a field for one sample, and these need to backfill an
-# empty list -- rendered as '.' to other samples.
+# empty list -- rendered as '.' to other samples. A sample can also carry
+# a pre-existing scalar value for a field that used to be declared
+# Number=1 in the input header (e.g. AF) but is being redeclared as
+# multi-value here -- that value must be wrapped, not discarded.
 def fill_missing_multi_value_format_fields(entry, header):
     for field in entry.FORMAT:
         field_info = header.get_format_field_info(field)
         if field_info is None or field_info.number == 1:
             continue
         for call in entry.calls:
-            if not isinstance(call.data.get(field), list):
+            if field not in call.data:
                 call.data[field] = []
+            elif not isinstance(call.data[field], list):
+                call.data[field] = [call.data[field]]

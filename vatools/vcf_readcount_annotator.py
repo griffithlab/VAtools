@@ -340,16 +340,6 @@ def main(args_input = sys.argv[1:]):
         reference  = entry.REF
         alts       = entry.ALT
 
-        #The NUMBER of the AD and AF fields in the input VCF might be 1,
-        #but we are now writing R/A number fields which are is-many
-        #In that case the values of these fields need to be changed
-        #from a single number to an array or else the writer will throw an error
-        for sample in vcf_reader.header.samples.names:
-            sample_data = entry.call_for_sample[sample].data
-            for field in [count_field, forward_count_field, reverse_count_field, frequency_field]:
-                if field in sample_data and (not isinstance(sample_data[field], list)):
-                    sample_data[field] = [sample_data[field]]
-
         #If we limit the annotations to only SNVs and the entry contains an InDel, skip it
         if args.variant_type == 'snv' and has_indel(entry):
             if has_snv(entry):
