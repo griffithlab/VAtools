@@ -5,7 +5,7 @@ The VCF Genotype Annotator will take an existing VCF file and add a new sample
 to it. The sample name is set via the second positional argument.
 The sample's GT field is pre-populated with a default value given by
 the third positional argument. Options are ``0/1``, ``1/1``, ``0/0``, or
-``.``.
+``.``.  This is useful because some tools do not generate sample/genotype fields, and some downstream tools require them. 
 
 It can also be used to add a GT field to an existing sample, e.g. for VCFs
 created by Strelka which does not output a GT field for its calls.
@@ -18,3 +18,10 @@ Usage
 -----
 
 .. program-output:: vcf-genotype-annotator -h
+
+Example Command
+---------------
+
+.. code-block:: none
+
+   vcf-genotype-annotator input.vcf TUMOR 0/1 -o output.vcf

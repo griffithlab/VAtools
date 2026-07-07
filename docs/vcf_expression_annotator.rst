@@ -1,35 +1,22 @@
 VCF Expression Annotator
 ========================
 
-The VCF Expression Annotator will take an output file from Cufflinks, Kallisto,
-or StringTie and add the data from that file to your VCF. The expression file type is
-specified using ``kallisto``, ``stringtie``, or ``cufflinks`` in the list of
-positional parameters.
+The VCF Expression Annotator takes gene expression data and adds it to a VCF, allowing downstream tools to ask "how well is the gene containing this variant expressed?"
 
-In addition, the type of expression data, either ``gene`` or ``transcript``, needs to
-be specified. This will result in the expression value to be written to the
-``GX`` or ``TX`` field, respectively.
+The tool natively supports output files from `StringTie <https://github.com/gpertea/stringtie>`_, `Kallisto <https://kallisto.readthedocs.io/en/latest/>`_, or `Cufflinks <https://github.com/cole-trapnell-lab/cufflinks>`_, by specifying the appropriate format in the positional parameters: ``kallisto``, ``stringtie``, or ``cufflinks``.
 
-The input VCF needs to be annotated with VEP with gene and transcript information so
-that the VCF Expression Annotator can match a variant's Ensembl gene and transcript
-identifier in the VCF to the one in the expression file. When running in
-``gene`` mode, Ensembl IDs - not gene names - are used. Depending on the
-expression software used, the transcript identifiers might contain version
-numbers. To add transcript version numbers to your VEP annotation, use the
-``--transcript_version`` when running VEP. You can also use the
-``--ignore-ensembl-id-version`` flag of the VCF Expression Annotator to ignore
-the version of Ensembl gene and transcript IDs when finding the matching entry in your expression
-file.
+In addition, the type of expression data, either ``gene`` or ``transcript``, needs to be specified. This will result in the expression value being written to the ``GX`` or ``TX`` field, respectively.
 
-The VCF Expression Annotator also accepts a custom tab-delimited (TSV) file input for the
-expression file. This TSV file will need to contain one column with gene or
-transcrip Ensembl IDs and one column with the expression values. This file
-then needs to contain a header line that is used to
-identify the contents of each column. This is done via the  ``--id-column``
-and ``--expression-column`` parameters which need
-to match the gene/transcript identifier and expression value column headers.
-In order to use this option the expression file format option will need to be
-set to ``custom``. Please note that when running in ``gene`` mode, the ID
+The input VCF needs to be annotated with VEP with gene and transcript information so that the VCF Expression Annotator can match a variant's Ensembl gene and transcript identifier in the VCF to the one in the expression file. 
+
+When running in ``gene`` mode, Ensembl IDs - not gene names - are used. Depending on the expression software used, the Ensembl identifiers might contain version numbers. To add transcript and/or gene version numbers to your VEP annotations, use the ``--transcript_version`` and ``--gene-version`` when running VEP, respectively, as needed. 
+
+You can also use the ``--ignore-ensembl-id-version`` flag of the VCF Expression Annotator to ignore the version of Ensembl gene and transcript IDs when finding the matching entry in your expression file.
+
+#### Custom Expression Data
+VCF Expression Annotator can be used with other tools, so long as their expression output can be manipulated into a TSV containing two columns: Ensembl gene or transcript ID and expression values. This file also needs to contain a header line that is used to identify the contents of each column. These headers are specified via the ``--id-column`` and ``--expression-column`` parameters.
+
+In order to use this option the ``custom`` value should be give in the file format parameter. Please note that when running in ``gene`` mode, the ID
 column will need to contain Ensembl Gene IDs, not gene names.
 
 By default the output VCF will be written to a ``.tx.vcf`` or ``.gx.vcf`` file next to
