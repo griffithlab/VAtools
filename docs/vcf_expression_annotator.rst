@@ -23,6 +23,13 @@ By default the output VCF will be written to a ``.tx.vcf`` or ``.gx.vcf`` file n
 your input VCF file. You can set a different output file name using the
 ``--output-vcf`` parameter.
 
+By default, running the VCF Expression Annotator against a VCF that already has a
+``GX``/``TX`` FORMAT header raises an error. Use ``--force`` to annotate such a VCF
+anyway - for example, to fill in a sample that wasn't previously annotated. Even with
+``--force``, an error is raised if doing so would overwrite an existing non-blank
+``GX``/``TX`` value for the target sample; use ``--overwrite`` (which requires
+``--force``) to allow replacing those existing values.
+
 Usage
 -----
 

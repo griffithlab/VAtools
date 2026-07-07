@@ -16,9 +16,12 @@ annotate VCF files with data from other tools.
     counts, and more) as additional FORMAT fields.
 
 **vcf-expression-annotator**
-    A tool that will add gene expression data to the VCF INFO column. 
-    Directly supports outputs from `StringTie <https://github.com/gpertea/stringtie>`_, `Kallisto <https://kallisto.readthedocs.io/en/latest/>`_, and `Cufflinks <https://github.com/cole-trapnell-lab/cufflinks>`_. 
-    There also is a ``custom`` option to allow annotation with data
+    A tool that will add the data from several expression tools' output files
+    to the VCF FORMAT column, on a per-sample basis (use ``-s`` to select the
+    sample for multi-sample VCFs). Directly supports outputs from `StringTie <https://github.com/gpertea/stringtie>`_, 
+    `Kallisto <https://kallisto.readthedocs.io/en/latest/>`_, and 
+    `Cufflinks <https://github.com/cole-trapnell-lab/cufflinks>`_. 
+    There also is a ``custom`` option to annotate with data
     from any tab-delimited file.
 
 **vcf-info-annotator**
