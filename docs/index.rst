@@ -15,7 +15,8 @@ annotate VCF files with data from other tools.
 
 **vcf-expression-annotator**
     A tool that will add the data from several expression tools' output files
-    to the VCF INFO column. Supported tools are StringTie, Kallisto,
+    to the VCF FORMAT column, on a per-sample basis (use ``-s`` to select the
+    sample for multi-sample VCFs). Supported tools are StringTie, Kallisto,
     and Cufflinks. There also is a ``custom`` option to annotate with data
     from any tab-delimited file.
 
