@@ -6,6 +6,7 @@ import re
 from collections import OrderedDict
 from gtfparse import read_gtf
 import logging
+from vatools.utils import write_record
 
 def resolve_id_column(args):
     if args.format == 'cufflinks':
@@ -236,7 +237,7 @@ def main(args_input = sys.argv[1:]):
         genes = set()
         if 'CSQ' not in entry.INFO:
             logging.warning("Variant is missing VEP annotation. INFO column doesn't contain CSQ field for variant {}".format(entry))
-            vcf_writer.write_record(entry)
+            write_record(entry, vcf_writer)
             continue
         for transcript in entry.INFO['CSQ']:
             for key, value in zip(csq_format, transcript.split('|')):
@@ -255,7 +256,7 @@ def main(args_input = sys.argv[1:]):
             if len(transcript_ids) > 0:
                 (entry, missing_expressions_count) = add_expressions(entry, sample_name, df, transcript_ids, 'TX', id_column, expression_column, args.ignore_ensembl_id_version, missing_expressions_count, args.overwrite)
                 entry_count += len(transcript_ids)
-        vcf_writer.write_record(entry)
+        write_record(entry, vcf_writer)
 
     vcf_reader.close()
     vcf_writer.close()

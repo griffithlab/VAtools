@@ -5,7 +5,8 @@ The VAtools suite is written for Linux and Mac OS X.
 If you are using Windows you will need to set up a
 Linux environment, for example by using WSL or setting up a virtual machine.
 
-VAtools requires Python 3.8 or above. Check the Python version installed on your system with:
+VAtools requires Python 3.10 or above. Before running any
+installation steps, check the Python version installed on your system:
 
 .. code-block:: none
 
