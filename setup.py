@@ -15,8 +15,9 @@ setup(
             "ref-transcript-mismatch-reporter = vatools.ref_transcript_mismatch_reporter:main",
         ]
     },
+    python_requires='>=3.10',
     install_requires=[
-        'vcfpy==0.13.8',
+        'vcfpy==0.14.2',
         'pysam',
         'pandas',
         'gtfparse==1.3.0',
@@ -29,7 +30,11 @@ setup(
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
 
-        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
 
         'License :: OSI Approved :: MIT License',
     ],

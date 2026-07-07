@@ -6,7 +6,7 @@ import re
 from collections import OrderedDict
 from gtfparse import read_gtf
 import logging
-from vatools.utils import open_maybe_gz
+from vatools.utils import open_maybe_gz, write_record
 
 def sniff_stringtie_format(path):
     #Look at the first non-blank, non-comment line to tell a StringTie gene
@@ -85,6 +85,13 @@ def to_array(dictionary):
         array.append("{}|{}".format(key, value))
     return sorted(array)
 
+def is_blank_format_value(value):
+    if value is None:
+        return True
+    if isinstance(value, list):
+        return len(value) == 0 or all(v in (None, '.', '') for v in value)
+    return value in ('.', '')
+
 def parse_expression_file(args, vcf_reader, vcf_writer):
     if args.format == 'stringtie':
         check_stringtie_file_format(args)
@@ -120,28 +127,31 @@ def create_vcf_reader(args):
     if 'CSQ' not in vcf_reader.header.info_ids():
         vcf_reader.close()
         raise Exception("ERROR: VCF {} is not VEP-annotated. Please annotate the VCF with VEP before running this tool.".format(args.input_vcf))
-    if args.mode == 'gene' and 'GX' in vcf_reader.header.format_ids():
+    if args.mode == 'gene' and 'GX' in vcf_reader.header.format_ids() and not args.force:
         vcf_reader.close()
-        raise Exception("ERROR: VCF {} is already gene expression annotated. GX format header already exists.".format(args.input_vcf))
-    elif args.mode == 'transcript' and 'TX' in vcf_reader.header.format_ids():
+        raise Exception("ERROR: VCF {} is already gene expression annotated. GX format header already exists. Use --force to annotate anyway.".format(args.input_vcf))
+    elif args.mode == 'transcript' and 'TX' in vcf_reader.header.format_ids() and not args.force:
         vcf_reader.close()
-        raise Exception("ERROR: VCF {} is already transcript expression annotated. TX format header already exists.".format(args.input_vcf))
-    return vcf_reader, is_multi_sample
+        raise Exception("ERROR: VCF {} is already transcript expression annotated. TX format header already exists. Use --force to annotate anyway.".format(args.input_vcf))
+    sample_name = args.sample_name if is_multi_sample else vcf_reader.header.samples.names[0]
+    return vcf_reader, sample_name
 
 def create_vcf_writer(args, vcf_reader):
     (head, sep, tail) = args.input_vcf.rpartition('.vcf')
     new_header = vcf_reader.header.copy()
     if args.mode == 'gene':
-        new_header.add_format_line(OrderedDict([('ID', 'GX'), ('Number', '.'), ('Type', 'String'), ('Description', 'Gene Expressions')]))
+        if 'GX' not in new_header.format_ids():
+            new_header.add_format_line(OrderedDict([('ID', 'GX'), ('Number', '.'), ('Type', 'String'), ('Description', 'Gene Expressions')]))
         output_file = ('').join([head, '.gx.vcf', tail])
     elif args.mode == 'transcript':
-        new_header.add_format_line(OrderedDict([('ID', 'TX'), ('Number', '.'), ('Type', 'String'), ('Description', 'Transcript Expressions')]))
+        if 'TX' not in new_header.format_ids():
+            new_header.add_format_line(OrderedDict([('ID', 'TX'), ('Number', '.'), ('Type', 'String'), ('Description', 'Transcript Expressions')]))
         output_file = ('').join([head, '.tx.vcf', tail])
     if args.output_vcf:
         output_file = args.output_vcf
     return vcfpy.Writer.from_path(output_file, new_header)
 
-def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_column, expression_column, ignore_ensembl_id_version, missing_expressions_count):
+def add_expressions(entry, sample_name, df, items, tag, id_column, expression_column, ignore_ensembl_id_version, missing_expressions_count, overwrite):
     subset = None
     if ignore_ensembl_id_version:
         items_without_version = [re.sub(r'\.[0-9]+$', '', item) for item in items]
@@ -152,18 +162,25 @@ def add_expressions(entry, is_multi_sample, sample_name, df, items, tag, id_colu
         subset = df[df[id_column].isin(items)]
     expressions = subset[[id_column, expression_column]].groupby(id_column).sum().to_dict()[expression_column]
     missing_expressions_count += (len(items) - len(expressions))
-    if is_multi_sample:
-        entry.FORMAT += [tag]
-        entry.call_for_sample[sample_name].data[tag] = to_array(expressions)
-    else:
-        entry.add_format(tag, to_array(expressions))
+    call = entry.call_for_sample[sample_name]
+    existing_value = call.data.get(tag)
+    if not is_blank_format_value(existing_value) and not overwrite:
+        raise Exception(
+            "ERROR: Sample {} already has a non-blank {} value ({}) at {}:{}. Use --overwrite to replace existing values.".format(
+                sample_name, tag, existing_value, entry.CHROM, entry.POS
+            )
+        )
+    if tag not in entry.FORMAT:
+        entry.FORMAT.append(tag)
+    call.data[tag] = to_array(expressions)
     return (entry, missing_expressions_count)
 
 def define_parser():
     parser = argparse.ArgumentParser(
         "vcf-expression-annotator",
         description = "A tool that will add the data from several expression tools' output files" +
-                      "to the VCF INFO column. Supported tools are StringTie, Kallisto, " +
+                      "to the VCF FORMAT column, on a per-sample basis (use -s to select the " +
+                      "sample for multi-sample VCFs). Supported tools are StringTie, Kallisto, " +
                       "and Cufflinks. There also is a ``custom`` option to annotate with data " +
                       "from any tab-delimited file."
     )
@@ -210,6 +227,20 @@ def define_parser():
         help='Assumes that the final period and number denotes the Ensembl ID version and ignores it (i.e. for "ENST00001234.3" - ignores the ".3").',
         action="store_true"
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Allow annotating a VCF that already has a GX/TX FORMAT header (e.g. to fill in "
+            +"a sample that wasn't previously annotated). By default, running against an "
+            +"already-annotated VCF raises an error."
+    )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Requires --force. Allow overwriting existing non-blank GX/TX values for the "
+            +"target sample. Without this flag, --force will still raise an error if the "
+            +"sample already has a non-blank value for a variant."
+    )
 
     return parser
 
@@ -222,8 +253,10 @@ def main(args_input = sys.argv[1:]):
             raise Exception("--id-column is not set. This is required when using the `custom` format.")
         if args.expression_column is None:
             raise Exception("--expression-column is not set. This is required when using the `custom` format.")
+    if args.overwrite and not args.force:
+        parser.error("--overwrite requires --force")
 
-    (vcf_reader, is_multi_sample) = create_vcf_reader(args)
+    (vcf_reader, sample_name) = create_vcf_reader(args)
     format_pattern = re.compile('Format: (.*)')
     csq_format = format_pattern.search(vcf_reader.header.get_info_field_info('CSQ').description).group(1).split('|')
 
@@ -238,7 +271,7 @@ def main(args_input = sys.argv[1:]):
         genes = set()
         if 'CSQ' not in entry.INFO:
             logging.warning("Variant is missing VEP annotation. INFO column doesn't contain CSQ field for variant {}".format(entry))
-            vcf_writer.write_record(entry)
+            write_record(entry, vcf_writer)
             continue
         for transcript in entry.INFO['CSQ']:
             for key, value in zip(csq_format, transcript.split('|')):
@@ -250,14 +283,14 @@ def main(args_input = sys.argv[1:]):
         if args.mode == 'gene':
             genes = list(genes)
             if len(genes) > 0:
-                (entry, missing_expressions_count) = add_expressions(entry, is_multi_sample, args.sample_name, df, genes, 'GX', id_column, expression_column, args.ignore_ensembl_id_version, missing_expressions_count)
+                (entry, missing_expressions_count) = add_expressions(entry, sample_name, df, genes, 'GX', id_column, expression_column, args.ignore_ensembl_id_version, missing_expressions_count, args.overwrite)
                 entry_count += len(genes)
         elif args.mode == 'transcript':
             transcript_ids = list(transcript_ids)
             if len(transcript_ids) > 0:
-                (entry, missing_expressions_count) = add_expressions(entry, is_multi_sample, args.sample_name, df, transcript_ids, 'TX', id_column, expression_column, args.ignore_ensembl_id_version, missing_expressions_count)
+                (entry, missing_expressions_count) = add_expressions(entry, sample_name, df, transcript_ids, 'TX', id_column, expression_column, args.ignore_ensembl_id_version, missing_expressions_count, args.overwrite)
                 entry_count += len(transcript_ids)
-        vcf_writer.write_record(entry)
+        write_record(entry, vcf_writer)
 
     vcf_reader.close()
     vcf_writer.close()

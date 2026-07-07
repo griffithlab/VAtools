@@ -101,6 +101,83 @@ class VcfExpressionAnnotatorTests(unittest.TestCase):
             vcf_expression_annotator.main(command)
         self.assertTrue('is already gene expression annotated. GX format header already exists.' in str(context.exception))
 
+    def test_error_overwrite_requires_force(self):
+        with self.assertRaises(SystemExit) as context:
+            vcf_expression_annotator.main([
+                os.path.join(self.test_data_dir, 'input.vcf'),
+                os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
+                'cufflinks',
+                'gene',
+                '--overwrite',
+            ])
+        self.assertEqual(context.exception.code, 2)
+
+    def test_error_force_without_overwrite_blocks_non_blank_value(self):
+        with self.assertRaises(Exception) as context:
+            command = [
+                os.path.join(self.test_data_dir, 'multiple_samples.gx.vcf'),
+                os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
+                'cufflinks',
+                'gene',
+                '-s', 'H_NJ-HCC1395-HCC1395',
+                '--force',
+            ]
+            vcf_expression_annotator.main(command)
+        self.assertTrue('already has a non-blank GX value' in str(context.exception))
+        self.assertTrue('Use --overwrite to replace existing values.' in str(context.exception))
+
+    def test_force_annotates_sample_with_blank_value(self):
+        temp_path = tempfile.TemporaryDirectory()
+        output_vcf = os.path.join(temp_path.name, 'output.vcf')
+        command = [
+            os.path.join(self.test_data_dir, 'multiple_samples.gx.vcf'),
+            os.path.join(self.test_data_dir, 'genes.fpkm_tracking'),
+            'cufflinks',
+            'gene',
+            '-s', 'H_NJ-HCC1395-HCC1396',
+            '--force',
+            '-o', output_vcf,
+        ]
+        vcf_expression_annotator.main(command)
+        with open(output_vcf) as f:
+            data_line = [l for l in f if not l.startswith('#')][0]
+        fields = data_line.rstrip('\n').split('\t')
+        gx_index = fields[8].split(':').index('GX')
+        self.assertEqual(fields[9].split(':')[gx_index], 'ENSG00000225255|0.0')
+        self.assertEqual(fields[10].split(':')[gx_index], 'ENSG00000225255|0.0')
+        temp_path.cleanup()
+
+    def test_force_overwrite_replaces_existing_value(self):
+        # multiple_samples.gx.vcf already has GX=ENSG00000225255|0.0 for this sample.
+        # Use an expression file with a different FPKM for that gene so the output can
+        # only match if the value was actually recomputed and overwritten, not just left as-is.
+        temp_path = tempfile.TemporaryDirectory()
+        updated_expression_file = os.path.join(temp_path.name, 'genes.fpkm_tracking')
+        with open(os.path.join(self.test_data_dir, 'genes.fpkm_tracking')) as infile, open(updated_expression_file, 'w') as outfile:
+            for line in infile:
+                fields = line.rstrip('\n').split('\t')
+                if fields[0] == 'ENSG00000225255':
+                    fields[9] = '42'
+                outfile.write('\t'.join(fields) + '\n')
+        output_vcf = os.path.join(temp_path.name, 'output.vcf')
+        command = [
+            os.path.join(self.test_data_dir, 'multiple_samples.gx.vcf'),
+            updated_expression_file,
+            'cufflinks',
+            'gene',
+            '-s', 'H_NJ-HCC1395-HCC1395',
+            '--force',
+            '--overwrite',
+            '-o', output_vcf,
+        ]
+        vcf_expression_annotator.main(command)
+        with open(output_vcf) as f:
+            data_line = [l for l in f if not l.startswith('#')][0]
+        fields = data_line.rstrip('\n').split('\t')
+        gx_index = fields[8].split(':').index('GX')
+        self.assertEqual(fields[9].split(':')[gx_index], 'ENSG00000225255|42.0')
+        temp_path.cleanup()
+
     def test_error_id_column_nonexistent_in_file(self):
         with self.assertRaises(Exception) as context:
             command = [
