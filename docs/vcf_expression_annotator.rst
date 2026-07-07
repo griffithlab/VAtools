@@ -3,8 +3,6 @@ VCF Expression Annotator
 
 The VCF Expression Annotator takes gene expression data and adds it to a VCF, allowing downstream tools to ask "how well is the gene containing this variant expressed?"
 
-`Link Text <https://example.com>`_
-
 The tool natively supports output files from `StringTie <https://github.com/gpertea/stringtie>`_, `Kallisto <https://kallisto.readthedocs.io/en/latest/>`_, or `Cufflinks <https://github.com/cole-trapnell-lab/cufflinks>`_, by specifying the appropriate format in the positional parameters: ``kallisto``, ``stringtie``, or ``cufflinks``.
 
 In addition, the type of expression data, either ``gene`` or ``transcript``, needs to be specified. This will result in the expression value being written to the ``GX`` or ``TX`` field, respectively.
