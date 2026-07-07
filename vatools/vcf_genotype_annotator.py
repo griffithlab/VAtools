@@ -3,7 +3,7 @@ import sys
 import vcfpy
 import csv
 from collections import OrderedDict
-from vatools.utils import fill_missing_multi_value_format_fields
+from vatools.utils import write_record
 
 def create_vcf_reader(args):
     vcf_reader = vcfpy.Reader.from_path(args.input_vcf)
@@ -83,8 +83,7 @@ def main(args_input = sys.argv[1:]):
             else:
                 entry.calls = [new_sample_call]
             entry.call_for_sample = {call.sample: call for call in entry.calls}
-        fill_missing_multi_value_format_fields(entry, vcf_writer.header)
-        vcf_writer.write_record(entry)
+        write_record(entry, vcf_writer)
 
     vcf_reader.close()
     vcf_writer.close()

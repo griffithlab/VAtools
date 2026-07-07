@@ -27,3 +27,7 @@ def fill_missing_multi_value_format_fields(entry, header):
                 call.data[field] = []
             elif not isinstance(call.data[field], list):
                 call.data[field] = [call.data[field]]
+
+def write_record(entry, vcf_writer):
+    fill_missing_multi_value_format_fields(entry, vcf_writer.header)
+    vcf_writer.write_record(entry)

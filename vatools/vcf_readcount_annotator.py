@@ -7,7 +7,7 @@ import tempfile
 import csv
 from collections import OrderedDict, namedtuple
 import logging
-from vatools.utils import open_maybe_gz, fill_missing_multi_value_format_fields
+from vatools.utils import open_maybe_gz, write_record
 
 # parse the input params
 def define_parser():
@@ -316,10 +316,6 @@ def main(args_input = sys.argv[1:]):
     (vcf_reader, sample_name) = create_vcf_reader(args)
     vcf_writer = create_vcf_writer(args, vcf_reader, extra_fields)
 
-    def write_record(entry):
-        fill_missing_multi_value_format_fields(entry, vcf_writer.header)
-        vcf_writer.write_record(entry)
-
     if args.data_type == 'DNA':
         depth_field = 'DP'
         count_field = 'AD'
@@ -344,19 +340,19 @@ def main(args_input = sys.argv[1:]):
         if args.variant_type == 'snv' and has_indel(entry):
             if has_snv(entry):
                 logging.warning("Running in `snv` variant type mode but VCF entry for chr {} pos {} ref {} alts {} contains both SNVs and InDels. Skipping.".format(chromosome, entry.POS, reference, alts))
-            write_record(entry)
+            write_record(entry, vcf_writer)
             continue
 
         #If we limit the annotations to only InDels and the entry contains a SNV, skip it
         if args.variant_type == 'indel' and has_snv(entry):
             if has_indel(entry):
                 logging.warning("Running in `indel` variant type mode but VCF entry for chr {} pos {} ref {} alts {} contains both SNVs and InDels. Skipping.".format(chromosome, entry.POS, reference, alts))
-            write_record(entry)
+            write_record(entry, vcf_writer)
             continue
 
         #If the entry contains a complex variant, skip it
         if has_complex_variant(entry):
-            write_record(entry)
+            write_record(entry, vcf_writer)
             continue
 
         (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alts[0].serialize(), entry.POS)
@@ -371,12 +367,12 @@ def main(args_input = sys.argv[1:]):
                 entry.FORMAT += [count_field]
             ads = [0] * (len(alts) + 1)
             entry.call_for_sample[sample_name].data[count_field] = ads
-            write_record(entry)
+            write_record(entry, vcf_writer)
             continue
 
         #Discrepant bam-readcount entries; none of the fields should be written.
         if isinstance(brct, list):
-            write_record(entry)
+            write_record(entry, vcf_writer)
             continue
 
         if 'depth' not in brct:
@@ -390,7 +386,7 @@ def main(args_input = sys.argv[1:]):
         #been a duplicate bam-readcount entry where only the depths matched.
         #The only field to write is depth; frequency and count fields should not be written.
         if len(brct.keys()) == 1 and list(brct.keys())[0] == 'depth':
-            write_record(entry)
+            write_record(entry, vcf_writer)
             continue
 
         primary_brct = brct
@@ -465,7 +461,7 @@ def main(args_input = sys.argv[1:]):
                         val = None
                     add_format_value(entry, sample_name, f.tag, val)
 
-        write_record(entry)
+        write_record(entry, vcf_writer)
 
     vcf_writer.close()
     vcf_reader.close()
