@@ -67,7 +67,7 @@ These examples use ``sample.mismatch.vcf``, which was deliberately constructed s
 
    ref-transcript-mismatch-reporter sample.mismatch.vcf
 
-Writes ``sample.mismatches.tsv`` next to the input and prints summary counts (variants processed, percentage flagged) to stdout.
+Writes ``sample.mismatch.mismatches.tsv`` next to the input and prints summary counts (variants processed, percentage flagged) to stdout.
 
 **2. Soft-filter**
 
@@ -76,7 +76,7 @@ Writes ``sample.mismatches.tsv`` next to the input and prints summary counts (va
    ref-transcript-mismatch-reporter sample.mismatch.vcf --filter soft \
      -o sample.soft_filtered.vcf
 
-Tags mismatched records with ``FILTER=CSQ_MISMATCH`` instead of removing them.
+Tags mismatched records with ``FILTER=CSQ_MISMATCH`` instead of removing them. Sets an explicit output file
 
 **3. Hard-filter**
 
