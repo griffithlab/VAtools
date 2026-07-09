@@ -77,7 +77,7 @@ below.
    * - ``-r`` / ``--strand-counts``
      - ``ADF``, ``ADR``
      - Forward/reverse strand read counts. In DNA mode, ADF and ADR are
-       already written by default; this flag is a no-op with a warning.
+       already written by default, so this flag is a no-op.
    * - ``-f`` / ``--avg-pos-fraction``
      - ``VAPF``
      - Avg position of variant reads as a fraction of read length
