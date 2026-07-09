@@ -86,10 +86,10 @@ Download the example data used below:
 .. code-block:: none
 
    vcf-info-annotator sample.vcf sample.info_single.tsv \
-     -m "value:DEPTH_SCORE:Integer:Placeholder depth-based score" \
+     -m "value:SCORE:Integer:Variant score" \
      -o sample.info.vcf
 
-Adds ``DEPTH_SCORE=2`` to the 22:18644673 record.
+Adds ``SCORE=2`` to the 22:18644673 record.
 
 **2. Annotate two fields in one run**
 
@@ -106,7 +106,7 @@ Adds ``MQ0=30;CVCLASS=Pathogenic`` to the same record.
 .. code-block:: none
 
    vcf-info-annotator sample.vcf sample.info_multi.tsv \
-     -m "mapping_quality:MQ0:Integer:Mapping quality score:ClinVar database:2.1" \
+     -m "mapping_quality:MQ0:Integer:Mapping quality score:BWA-mem:0.3.2" \
      -o sample.info.vcf
 
 Adds ``Source=ClinVar database,Version=2.1`` to the ``MQ0`` header line.
