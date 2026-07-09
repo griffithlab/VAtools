@@ -95,7 +95,7 @@ def define_parser():
     return parser
 
 def main(args_input = sys.argv[1:]):
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='%(message)s')
     parser = define_parser()
     args = parser.parse_args(args_input)
 
