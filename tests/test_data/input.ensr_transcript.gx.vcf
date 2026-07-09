@@ -78,6 +78,6 @@
 ##FILTER=<ID=VarscanHighConfidence,Description="Filter description">
 ##FILTER=<ID=PASS,Description="Passed all filters">
 ##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence type as predicted by VEP. Format: Allele|Gene|Feature|Feature_type|Consequence|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons|Existing_variation|MOTIF_NAME|MOTIF_POS|HIGH_INF_POS|MOTIF_SCORE_CHANGE|DISTANCE|STRAND|CANONICAL|SYMBOL|SYMBOL_SOURCE|SIFT|PolyPhen|HGVSc|HGVSp|DownstreamProtein|ProteinLengthChange|WildtypeProtein">
-##FORMAT=<ID=GX,Number=.,Type=String,Description="Gene Expressions">
+##FORMAT=<ID=GX,Number=.,Type=String,Description="Gene Expression">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	H_NJ-HCC1395-HCC1395
 22	18644673	.	C	T	.	.	CSQ=T||ENSR00000215794|RegulatoryFeature|regulatory_region_variant||||||||||||||||||||||	GT:BQ:SS:FDP:SDP:SUBDP:AU:CU:GU:TU:FT:FA:TLOD	0/1:.:2:1:0:0:0,0:106,108:0,0:6,6:PASS:0.04:7.56609
