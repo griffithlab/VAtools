@@ -26,7 +26,11 @@ cp "$TD/multi_col.tsv"                                         "$OUT/sample.info
 # it can't find in the VCF, unlike transform-split-values -t which handles
 # that gracefully.
 head -2 "$TD/transform_split_values/variants.tsv"               > "$OUT/sample.variant_report.tsv"
-cp "$TD/ref_transcript_mismatch_reporter/csq_mismatch.vcf"      "$OUT/sample.mismatch.vcf"
+# SSC=15 stripped from the INFO column -- it's an undeclared INFO key (no
+# ##INFO=<ID=SSC,...> header line in the source fixture) left over from
+# whatever caller produced it, irrelevant to what this example demonstrates,
+# and it makes vcfpy warn (FieldInfoNotFound) on every read.
+sed 's/SSC=15;//' "$TD/ref_transcript_mismatch_reporter/csq_mismatch.vcf" > "$OUT/sample.mismatch.vcf"
 
 # Header-trimmed VCFs (see scripts/trim_example_vcf.py)
 python3 scripts/trim_example_vcf.py "$TD/input.vcf"                   > "$OUT/sample.vcf"
