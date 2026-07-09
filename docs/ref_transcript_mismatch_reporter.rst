@@ -11,7 +11,7 @@ Usage
 .. program-output:: ref-transcript-mismatch-reporter -h
 
 Details
------
+-------
 
 This situation is problematic because at these positions, the REF nucleotide(s) will differ
 from the Ensembl transcript nucleotide(s) at the corresponding mutation
@@ -25,19 +25,19 @@ cannot make predictions on such variants.
 
 If there are only minor differences between the reference used and the Ensembl transcripts, only a small number of variants may be affected. If a large number of variants are flagged, then it would be wise to step back and consider whether there is a fundamental lack of compatibility (for example, alignments to GRCh37 that use a GRCh38 VEP cache).
 
-### Inputs
+**Inputs**
 
 The input VCF needs to be annotated by VEP and requires annotation with the
 ``Wildtype`` VEP plugin available as part of `pVACtools <https://pvactools.readthedocs.io/en/latest/pvacseq/input_file_prep/vep.html#installing-vep>`_.
 
-### Outputs
+**Outputs**
 
 This tool will report on the number of variants and transcripts in a VCF that
 are affected by this issue and output this information to stdout. It will
 write a ``.mismatch.tsv`` file next to the VCF that provides further details
 on the problematic variants.
 
-### Filtering 
+**Filtering**
 
 This tool also allows the user to either soft-filter or hard-filter the VCF
 using the ``--filter [soft|hard]`` parameter. Soft-filtering will tag the

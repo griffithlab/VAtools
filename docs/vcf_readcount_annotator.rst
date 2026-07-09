@@ -10,7 +10,8 @@ Usage
 
 .. program-output:: vcf-readcount-annotator -h
 
-## Details
+Details
+-------
 
 DNA readcounts are identified by specifying ``DNA`` in the list of
 positional arguments. Depth, allele counts, and VAFs are then written to the
@@ -31,7 +32,7 @@ your input VCF file. You can set a different output file using the
 
 Gzip-compressed bam-readcount files are also accepted.
 
-### SNVs and Indels
+**SNVs and Indels**
 
 SNVs and indels are usually run separately through bam-readcount because indels
 require insertion-centric mode (the ``-i`` option in bam-readcount). The
@@ -44,7 +45,7 @@ with a concatenated bam-readcount file cannot handle the case where a SNV and
 an indel exist at the same position — the duplicate entries cannot be
 resolved cleanly.
 
-### Extra bam-readcount fields
+**Extra bam-readcount fields**
 
 bam-readcount records per-base quality statistics beyond simple allele
 counts. These additional metrics can be written to the VCF as optional

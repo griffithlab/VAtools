@@ -10,7 +10,7 @@ Usage
 .. program-output:: transform-split-values -h
 
 Details
------
+-------
 
 The field in the TSV to manipulate is chosen via the second positional argument.
 

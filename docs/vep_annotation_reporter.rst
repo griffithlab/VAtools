@@ -9,7 +9,7 @@ Usage
 .. program-output:: vep-annotation-reporter -h
 
 Details
------
+-------
 
 The VEP Annotation Reporter will create a tab-delimited (TSV) file of
 variants in a VCF and their VEP annotations. The VEP fields to add to the

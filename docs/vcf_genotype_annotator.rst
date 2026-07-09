@@ -10,7 +10,7 @@ Usage
 .. program-output:: vcf-genotype-annotator -h
 
 Details
------
+-------
 
 The sample name is set via the second positional argument.
 The sample's GT field is pre-populated with a default value given by

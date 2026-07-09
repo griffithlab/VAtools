@@ -15,7 +15,8 @@ Usage
 Details
 ----------------
 
-### Input TSV format
+**Input TSV format**
+
 The TSV file must have a header row. The first two columns must be
 chromosome and position (one-based coordinates, used to match rows to VCF records). Any
 additional columns can be mapped to VCF INFO fields by name.
@@ -28,7 +29,7 @@ Example TSV with two data columns::
 
 Gzip-compressed TSV files (``.tsv.gz``) are also accepted.
 
-### Defining column mappings
+**Defining column mappings**
 
 Use the ``-m`` / ``--column-mappings`` flag to specify how TSV columns
 map to VCF INFO fields. Each mapping is a colon-delimited string with
@@ -52,7 +53,7 @@ comma:
 
    -m "col1:FIELD1:type:description,col2:FIELD2:type:description"
 
-### Overwriting existing fields
+**Overwriting existing fields**
 
 By default, the tool raises an error if the VCF already contains an
 INFO field with the same ID as a mapped field. Use ``--overwrite``
@@ -63,7 +64,7 @@ is removed from **every** record before annotation, so records that have
 no matching TSV entry will have no value for that field rather than
 retaining the old one. ``--clear-existing`` requires ``--overwrite``.
 
-### Output
+**Output**
 
 By default the output VCF is written to a ``.info.vcf`` file next to
 your input VCF. Use ``--output-vcf`` to specify a different path.
