@@ -7,7 +7,7 @@
 
 # VCF Annotation Tools (VAtools)
 
-VCF Annotation Tools is a python package that includes several tools to annotate VCF files with data from other tools.
+VAtools (VCF Annotation Tools) is a python package for easy manipulation of genomic data stored in the common VCF format
 
 **vcf-readcount-annotator**
 
@@ -15,11 +15,11 @@ A tool that will add the data from bam-readcount files to the VCF sample column.
 
 **vcf-expression-annotator**
 
-A tool that will add the data from several expression tools’ output files to the VCF FORMAT column, on a per-sample basis (use `-s` to select the sample for multi-sample VCFs). Supported tools are StringTie, Kallisto, and Cufflinks. There also is a `custom` option to annotate with data from any tab-delimited file.
+A tool that will add gene expression data to the VCF FORMAT column on a per-sample basis. StringTie, Kallisto, and Cufflinks outputs are supported natively, or there is a `custom` option to annotate with data from any tab-delimited file.
 
 **vcf-info-annotator**
 
-A tool that will add data from a tab-delimited file to any user-specified field in the VCF INFO column.
+A general-purpose tool that will add data from a tab-delimited file to any user-specified field in the VCF INFO column.
 
 **vcf-genotype-annotator**
 
@@ -27,13 +27,13 @@ A tool to add a new sample to an existing VCF file.
 
 **vep-annotation-reporter**
 
-A tool to create a tab-delimited (TSV) file of variants in a VCF and their VEP annotations.
+A tool to extract human-readable variant annotation data (in TSV format) from a VEP-annotated VCF.
 
 **ref-transcript-mismatch-reporter**
 
-A tool to identify variants in a VCF where the reference genome used to
-align and call variants doesn't match the Ensembl reference transcript
-used by VEP for variant consequence annotations.
+A tool to identify variants in a VCF where the reference genome (used to
+align and call variants) doesn't match the Ensembl reference transcript
+(used by VEP for variant consequence annotations).
 
 **transform-split-values**
 
