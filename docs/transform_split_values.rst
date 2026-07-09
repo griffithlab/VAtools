@@ -85,7 +85,7 @@ Produces one output column per operation: ``H_NJ-HCC1395-HCC1395-AD-mean=53.5``,
 
 Demonstrates ``-s``/``--sample-name`` for both the readcount annotator and ``transform-split-values`` on a multi-sample VCF — only the selected sample's depth values are extracted.
 
-**4. Extracting the alt ratio (tumor cellularity estimate)**
+**4. Extracting the alt ratio (aka VAF)**
 
 .. code-block:: none
 
