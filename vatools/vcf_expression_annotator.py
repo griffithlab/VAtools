@@ -3,6 +3,7 @@ import sys
 import vcfpy
 import pandas as pd
 import re
+import csv
 from collections import OrderedDict
 from gtfparse import read_gtf
 import logging
@@ -15,28 +16,26 @@ def sniff_stringtie_format(path):
     #which holds `gene_id "..."`-style attributes). Returns None if neither
     #filetype is recognized, so callers don't warn on unrecognized input.
     with open_maybe_gz(path) as f:
-        for line in f:
-            line = line.rstrip('\n')
-            if line == '' or line.startswith('#'):
-                continue
-            fields = line.split('\t')
-            if fields[0] == 'Gene ID':
-                return 'tsv'
-            if len(fields) == 9 and 'gene_id "' in fields[8]:
-                return 'gtf'
+        lines = (line for line in f if line.strip() and not line.startswith('#'))
+        fieldnames = csv.DictReader(lines, delimiter='\t').fieldnames
+        if fieldnames is None:
             return None
-    return None
+        if fieldnames[0] == 'Gene ID':
+            return 'tsv'
+        if len(fieldnames) == 9 and 'gene_id "' in fieldnames[8]:
+            return 'gtf'
+        return None
 
 def check_stringtie_file_format(args):
     detected_format = sniff_stringtie_format(args.expression_file)
     if args.mode == 'gene' and detected_format == 'gtf':
-        logging.warning(
-            'You provided a GTF file, but stringtie gene annotation is typically in tsv format. '
+        raise Exception(
+            'ERROR: You provided a GTF file, but stringtie gene annotation is typically in tsv format. '
             'Did you mean to provide the "transcript" option?'
         )
     elif args.mode == 'transcript' and detected_format == 'tsv':
-        logging.warning(
-            'You provided a TSV file, but stringtie transcript annotation is typically in gtf format. '
+        raise Exception(
+            'ERROR: You provided a TSV file, but stringtie transcript annotation is typically in gtf format. '
             'Did you mean to provide the "gene" option?'
         )
 
