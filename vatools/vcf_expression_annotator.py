@@ -95,7 +95,7 @@ def parse_expression_file(args, vcf_reader, vcf_writer):
     if args.format == 'stringtie':
         check_stringtie_file_format(args)
     if args.format == 'stringtie' and args.mode == 'transcript':
-        df_all = read_gtf(args.expression_file, usecols=['reference_id', 'transcript_id', 'TPM', 'feature'])
+        df_all = read_gtf(args.expression_file, usecols=['reference_id', 'transcript_id', 'TPM', 'feature'], result_type='pandas')
         df = df_all[df_all["feature"] == "transcript"]
         id_column = resolve_stringtie_id_column(args, df.columns.values)
     else:
