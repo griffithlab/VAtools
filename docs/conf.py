@@ -26,7 +26,7 @@ author = 'Susanna Kiwala, Chris Miller'
 # The short X.Y version
 version = '6.0'
 # The full version, including alpha/beta/rc tags
-release = '6.0.0'
+release = '6.0.1'
 
 
 # -- General configuration ---------------------------------------------------
