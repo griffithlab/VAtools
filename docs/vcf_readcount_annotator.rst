@@ -5,6 +5,14 @@ The VCF Readcount Annotator takes an output file from
 `bam-readcount <https://github.com/genome/bam-readcount>`_
 and adds its data to your VCF. It supports both DNA and RNA readcounts.
 
+Usage
+-----
+
+.. program-output:: vcf-readcount-annotator -h
+
+Details
+-------
+
 DNA readcounts are identified by specifying ``DNA`` in the list of
 positional arguments. Depth, allele counts, and VAFs are then written to the
 DP, AD, and AF fields, respectively. Forward and reverse strand allele counts
@@ -24,8 +32,7 @@ your input VCF file. You can set a different output file using the
 
 Gzip-compressed bam-readcount files are also accepted.
 
-SNVs and indels
----------------
+**SNVs and Indels**
 
 SNVs and indels are usually run separately through bam-readcount because indels
 require insertion-centric mode (the ``-i`` option in bam-readcount). The
@@ -38,18 +45,7 @@ with a concatenated bam-readcount file cannot handle the case where a SNV and
 an indel exist at the same position — the duplicate entries cannot be
 resolved cleanly.
 
-**Example: annotating SNVs and indels separately**
-
-.. code-block:: none
-
-   vcf-readcount-annotator input.vcf snv_bam_readcount.tsv DNA \
-     -s sample_name -t snv -o snv_annotated.vcf
-
-   vcf-readcount-annotator snv_annotated.vcf indel_bam_readcount.tsv DNA \
-     -s sample_name -t indel -o annotated.vcf
-
-Extra bam-readcount fields
---------------------------
+**Extra bam-readcount fields**
 
 bam-readcount records per-base quality statistics beyond simple allele
 counts. These additional metrics can be written to the VCF as optional
@@ -81,7 +77,7 @@ below.
    * - ``-r`` / ``--strand-counts``
      - ``ADF``, ``ADR``
      - Forward/reverse strand read counts. In DNA mode, ADF and ADR are
-       already written by default; this flag is a no-op with a warning.
+       already written by default, so this flag is a no-op.
    * - ``-f`` / ``--avg-pos-fraction``
      - ``VAPF``
      - Avg position of variant reads as a fraction of read length
@@ -104,21 +100,62 @@ below.
      - ``VA3P``
      - Avg distance to effective 3' end for variant reads
 
-**Example: annotating with all extra fields**
+
+Examples
+--------
+
+Download the example data used below:
 
 .. code-block:: none
 
-   vcf-readcount-annotator input.vcf bam_readcount.tsv DNA \
-     -a -o output.vcf
+   curl -LO https://vatools.readthedocs.io/en/latest/_static/vatools-examples.tar.gz
+   tar xzf vatools-examples.tar.gz
+   cd vatools-examples
 
-**Example: annotating with selected extra fields**
+**1. Basic DNA annotation**
 
 .. code-block:: none
 
-   vcf-readcount-annotator input.vcf bam_readcount.tsv RNA \
-     -q -b -f -o output.vcf
+   vcf-readcount-annotator sample.vcf sample.snv.bam_readcount DNA \
+     -o sample.dna.readcount.vcf
 
-Usage
------
+Adds ``DP``, ``AD``, ``ADF``, ``ADR``, ``AF`` to the FORMAT column for the single sample.
 
-.. program-output:: vcf-readcount-annotator -h
+**2. RNA annotation** (same VCF, same readcounts, different data type)
+
+.. code-block:: none
+
+   vcf-readcount-annotator sample.vcf sample.snv.bam_readcount RNA \
+     -o sample.rna.readcount.vcf
+
+Adds ``RDP``, ``RAD``, ``RADF``, ``RADR``, ``RAF`` instead (R for RNA), so DNA and RNA readcounts can coexist on one VCF.
+
+**3. Multi-sample VCF, selecting a sample**
+
+.. code-block:: none
+
+   vcf-readcount-annotator sample.multi_sample.vcf sample.snv.bam_readcount DNA \
+     -s H_NJ-HCC1395-HCC1395 -o sample.multi.readcount.vcf
+
+Demonstrates ``-s``/``--sample-name``, which is required because the input has 2 samples. Only the selected sample's FORMAT values are filled in.
+
+**4. SNV/indel two-pass workflow with** ``--variant-type``
+
+.. code-block:: none
+
+   vcf-readcount-annotator sample.snvs_and_indels.vcf sample.snv.bam_readcount DNA \
+     -t snv -o snv_annotated.vcf
+
+   vcf-readcount-annotator snv_annotated.vcf sample.indel.bam_readcount DNA \
+     -t indel -o annotated.vcf
+
+``sample.snvs_and_indels.vcf`` has both SNVs and indels; the first pass annotates only the SNVs. The second command adds the indel readcounts. This two-pass approach is recommended because bam-readcount needs ``-i`` (insertion-centric mode) for indels and is normally run separately for SNVs vs indels.
+
+**5. Extra per-read quality fields**
+
+.. code-block:: none
+
+   vcf-readcount-annotator sample.vcf sample.snv.bam_readcount DNA \
+     -a -o sample.all_fields.readcount.vcf
+
+``--all-fields`` adds ``VAMQ``, ``VABQ``, ``VASEMQ``, ``VAPF``, ``VAMF``, ``VAMQS``, ``VAQ2``, ``VAQD``, ``VACL``, ``VA3P``. These fields can be individually added by using combinations of the short flags (``-q -b -e -f -m -k -2 -d -c``).

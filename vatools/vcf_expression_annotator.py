@@ -140,7 +140,7 @@ def create_vcf_writer(args, vcf_reader):
     new_header = vcf_reader.header.copy()
     if args.mode == 'gene':
         if 'GX' not in new_header.format_ids():
-            new_header.add_format_line(OrderedDict([('ID', 'GX'), ('Number', '.'), ('Type', 'String'), ('Description', 'Gene Expressions')]))
+            new_header.add_format_line(OrderedDict([('ID', 'GX'), ('Number', '.'), ('Type', 'String'), ('Description', 'Gene Expression')]))
         output_file = ('').join([head, '.gx.vcf', tail])
     elif args.mode == 'transcript':
         if 'TX' not in new_header.format_ids():

@@ -9,40 +9,40 @@ VCF Annotation Tools (VAtools)
 VAtools is a python package that includes several tools to
 annotate VCF files with data from other tools.
 
-**vcf-readcount-annotator**
+:doc:`vcf-readcount-annotator <vcf_readcount_annotator>`
     A tool that will add the data from `bam-readcount <https://github.com/genome/bam-readcount>`_ files to the VCF sample
     column. Writes depth, allele counts, and VAFs; optionally also writes
     detailed per-read quality metrics (mapping quality, base quality, strand
     counts, and more) as additional FORMAT fields.
 
-**vcf-expression-annotator**
+:doc:`vcf-expression-annotator <vcf_expression_annotator>`
     A tool that will add the data from several expression tools' output files
     to the VCF FORMAT column, on a per-sample basis (use ``-s`` to select the
-    sample for multi-sample VCFs). Directly supports outputs from `StringTie <https://github.com/gpertea/stringtie>`_, 
-    `Kallisto <https://kallisto.readthedocs.io/en/latest/>`_, and 
-    `Cufflinks <https://github.com/cole-trapnell-lab/cufflinks>`_. 
+    sample for multi-sample VCFs). Directly supports outputs from `StringTie <https://github.com/gpertea/stringtie>`_,
+    `Kallisto <https://kallisto.readthedocs.io/en/latest/>`_, and
+    `Cufflinks <https://github.com/cole-trapnell-lab/cufflinks>`_.
     There also is a ``custom`` option to annotate with data
     from any tab-delimited file.
 
-**vcf-info-annotator**
+:doc:`vcf-info-annotator <vcf_info_annotator>`
     A general-purpose tool that will add data from a tab-delimited file into VCF INFO fields.
     Supports mapping multiple TSV columns to multiple INFO fields in a single
     pass.
 
-**vcf-genotype-annotator**
+:doc:`vcf-genotype-annotator <vcf_genotype_annotator>`
     A tool to add a new sample to an existing VCF file or fill in the GT field
     for an existing sample in a VCF. Fills a need for genotype manipulation in
     VCFs that don't contain one, which can cause errors in downstream tools.
 
-**vep-annotation-reporter**
+:doc:`vep-annotation-reporter <vep_annotation_reporter>`
     A tool to parse the complex `VEP <https://www.ensembl.org/vep>`_-added CSQ field from a VCF and create a tab-delimited (TSV) file of variants and their VEP annotations.
 
-**ref-transcript-mismatch-reporter**
+:doc:`ref-transcript-mismatch-reporter <ref_transcript_mismatch_reporter>`
     A tool to identify variants in a VCF where the reference genome used to
     align and call variants doesn't match the Ensembl reference transcript
     used by VEP for variant consequence annotations.
 
-**transform-split-values**
+:doc:`transform-split-values <transform_split_values>`
     A tool that extracts and manipulates values from existing sample fields
     and outputs the results to a TSV file.
 

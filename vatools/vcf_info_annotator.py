@@ -97,7 +97,7 @@ def create_vcf_writer(args, vcf_reader, mappings):
                 l for l in new_header.lines
                 if not (hasattr(l, 'key') and l.key == 'INFO' and l.mapping.get('ID') == m['info_field'])
             ]
-            new_header._indices.pop(('INFO', m['info_field']), None)
+            new_header._indices = new_header._build_indices()
         od = OrderedDict([('ID', m['info_field']), ('Number', '1'), ('Type', m['type']), ('Description', m['description'])])
         if m['source']:
             od['Source'] = m['source']

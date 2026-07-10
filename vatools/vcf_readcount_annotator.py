@@ -65,7 +65,7 @@ def define_parser():
     extra.add_argument(
         '-r', '--strand-counts', action='store_true', default=False,
         help='Append ref and var forward/reverse strand read counts (FORMAT tags: ADF, ADR). '
-             'In DNA mode ADF/ADR are already written; this flag is a no-op with a warning.'
+             'In DNA mode ADF/ADR are already written by default, so this flag is a no-op.'
     )
     extra.add_argument(
         '-f', '--avg-pos-fraction', action='store_true', default=False,
@@ -289,11 +289,7 @@ def create_vcf_writer(args, vcf_reader, extra_fields=None):
         new_header.add_format_line(OrderedDict([('ID', 'RAF'), ('Number', 'A'), ('Type', 'Float'), ('Description', 'RNA Variant-allele frequency for the alt alleles')]))
     for f in extra_fields:
         if f.tag == 'strand_counts':
-            if args.data_type == 'DNA':
-                logging.warning(
-                    '--strand-counts (-r): ADF/ADR are already written in DNA mode; skipping.'
-                )
-            else:
+            if args.data_type != 'DNA':
                 new_header.add_format_line(OrderedDict([('ID', 'ADF'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'Allelic depths on the forward strand')]))
                 new_header.add_format_line(OrderedDict([('ID', 'ADR'), ('Number', 'R'), ('Type', 'Integer'), ('Description', 'Allelic depths on the reverse strand')]))
         else:
