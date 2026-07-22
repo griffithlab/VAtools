@@ -45,6 +45,8 @@ VAtools (VCF Annotation Tools) is a python package for easy manipulation of geno
     A tool that extracts and manipulates values from existing sample fields
     and outputs the results to a TSV file.
 
+VAtools is released under an MIT License to enable broad reuse
+
 .. toctree::
    :maxdepth: 1
 
