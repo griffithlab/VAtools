@@ -6,8 +6,7 @@
 VCF Annotation Tools (VAtools)
 ==============================
 
-VAtools is a python package that includes several tools to
-annotate VCF files with data from other tools.
+VAtools (VCF Annotation Tools) is a python package for easy manipulation of genomic data stored in the common VCF format
 
 :doc:`vcf-readcount-annotator <vcf_readcount_annotator>`
     A tool that will add the data from `bam-readcount <https://github.com/genome/bam-readcount>`_ files to the VCF sample
