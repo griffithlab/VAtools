@@ -4,8 +4,7 @@
     <img src="https://img.shields.io/pypi/v/vatools.svg?maxAge=1000" alt="PyPI" />
 </a>
 
-
-# VCF Annotation Tools (VAtools)
+![VATools_logo](docs/images/VAT-logo_v1a_small.png)
 
 VAtools (VCF Annotation Tools) is a python package for easy manipulation of genomic data stored in the common VCF format
 
