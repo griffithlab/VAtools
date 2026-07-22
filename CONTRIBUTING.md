@@ -1,6 +1,6 @@
 # Contributing
 
-We welcome improvements, extensions, bug reports and bug fixes to `VAtools!  
+We welcome improvements, extensions, bug reports and bug fixes to VAtools!  
 
 ## Bug Reports
 To make bug reports most useful, please include:
