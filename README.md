@@ -3,6 +3,9 @@
 <a href="https://pypi.python.org/pypi/vatools/">
     <img src="https://img.shields.io/pypi/v/vatools.svg?maxAge=1000" alt="PyPI" />
 </a>
+<a href="https://bioconda.github.io/recipes/vatools/README.html">
+    <img src="https://img.shields.io/conda/vn/bioconda/vatools?maxAge=1000" alt="bioconda" />
+</a>
 
 ![VATools_logo](docs/images/VAT-logo_v1a_small.png)
 
@@ -42,7 +45,11 @@ Please see [vatools.org](http://vatools.org) for the full documentation.
 
 ## Install
 
+Install with pip
 `pip install vatools`
+
+Or with bioconda
+`conda install -c bioconda -c conda-forge vatools`
 
 ## Container images
 
