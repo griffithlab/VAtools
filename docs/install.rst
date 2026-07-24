@@ -33,6 +33,15 @@ To upgrade an existing installation:
 
    pip install vatools --upgrade
 
+bioconda
+---
+
+Alternately, install VAtools using ``bioconda``:
+
+.. code-block:: none
+
+   conda install -c bioconda -c conda-forge vatools
+
 Docker
 ------
 
