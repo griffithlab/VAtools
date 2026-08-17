@@ -12,13 +12,15 @@ Details
 -------
 
 
-This tool natively supports the outputs from `StringTie <https://github.com/gpertea/stringtie>`_, `Kallisto <https://kallisto.readthedocs.io/en/latest/>`_, or `Cufflinks <https://github.com/cole-trapnell-lab/cufflinks>`_, by specifying the appropriate format in the positional parameters: ``kallisto``, ``stringtie``, or ``cufflinks``.
+This tool natively supports the outputs from `StringTie <https://github.com/gpertea/stringtie>`_, `Kallisto <https://kallisto.readthedocs.io/en/latest/>`_, or `Cufflinks <https://github.com/cole-trapnell-lab/cufflinks>`_, by specifying the appropriate format in the positional parameters: ``stringtie``, ``kallisto``, or ``cufflinks``, respectively.
 
 In addition, the type of expression data, either ``gene`` or ``transcript``, needs to be specified. This will result in the expression value being written to the ``GX`` or ``TX`` field, respectively.
 
-The input VCF needs to already be annotated with VEP, so that gene and transcript identifiers can be matched between the VCF and the expression file. 
+When specifying the ``stringtie`` file type, the ``TPM`` field is parsed. For the ``kallisto`` file type, the ``abundance`` field is used in ``gene`` mode and the ``tpm`` field in ``transcript`` mode. For the ``cufflinks`` file type, the ``FPKM`` field is used.
 
-When running in ``gene`` mode, Ensembl IDs - not gene names - are used. Depending on the expression software used, the Ensembl identifiers might contain version numbers. To add transcript and/or gene version numbers to your VEP annotations, use the ``--transcript_version`` and ``--gene-version`` when running VEP, respectively, as needed. 
+The input VCF needs to already be annotated with VEP, so that gene and transcript identifiers can be matched between the VCF and the expression file.
+
+When running in ``gene`` mode, Ensembl IDs - not gene names - are used. Depending on the expression software used, the Ensembl identifiers might contain version numbers. To add transcript and/or gene version numbers to your VEP annotations, use the ``--transcript_version`` and ``--gene-version`` when running VEP, respectively, as needed.
 
 You can also use the ``--ignore-ensembl-id-version`` flag of the VCF Expression Annotator to ignore the version of Ensembl gene and transcript IDs when finding the matching entry in your expression file.
 
