@@ -1,5 +1,5 @@
 ![Test Status](https://github.com/griffithlab/VAtools/actions/workflows/tests.yml/badge.svg)
-[![Docs](https://readthedocs.org/projects/pvactools/badge/?version=latest)](http://vatools.readthedocs.io/en/latest/?badge=latest)
+[![Docs](https://readthedocs.org/projects/vatools/badge/?version=latest)](http://vatools.readthedocs.io/en/latest/?badge=latest)
 <a href="https://pypi.python.org/pypi/vatools/">
     <img src="https://img.shields.io/pypi/v/vatools.svg?maxAge=1000" alt="PyPI" />
 </a>
