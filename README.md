@@ -23,6 +23,10 @@ A tool that will add the data from several expression tools’ output files to t
 
 A general-purpose tool that will add data from a tab-delimited file into VCF INFO fields. Supports mapping multiple TSV columns to multiple INFO fields in a single pass.
 
+**[vcf-facets-maf-annotator](vatools/vcf_facets_maf_annotator.py)**
+
+A tool that adds FACETS copy-number, tumor purity, cancer-cell fraction (CCF), and clonality annotations from a MAF file to VCF INFO fields. Matches variants by position and alleles, including insertions and deletions.
+
 **[vcf-genotype-annotator](https://vatools.readthedocs.io/en/latest/vcf_genotype_annotator.html)**
 
 A tool to add a new sample to an existing VCF file or fill in the GT field for an existing sample in a VCF. Fills a need for genotype manipulation in VCFs that don’t contain one, which can cause errors in downstream tools.
