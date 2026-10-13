@@ -178,3 +178,36 @@ class VcfExpressionEncoderTests(unittest.TestCase):
             self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.no_pick_value.tsv'), os.path.join(temp_path.name, 'input.tsv')))
             temp_path.cleanup()
             l.check_present(('root', 'WARNING', "VCF is annotated with the PICK flag but no PICK'ed transcript found for variant chr17 7675088 C T. Writing values for all transcripts."))
+
+    def test_all_vep_fields(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf.gz'),
+            'ALL',
+        ]
+        vep_annotation_reporter.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.all_fields.tsv'), os.path.join(temp_path.name, 'input.tsv')))
+        temp_path.cleanup()
+
+    def test_all_vep_fields_with_input_tsv(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'input.vcf.gz'), os.path.join(temp_path.name, 'input.vcf.gz'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf.gz'),
+            'ALL',
+            '-t', os.path.join(self.test_data_dir, 'variants.tsv'),
+        ]
+        vep_annotation_reporter.main(command)
+        self.assertTrue(cmp(os.path.join(self.test_data_dir, 'output.all_fields.input_tsv.tsv'), os.path.join(temp_path.name, 'input.tsv')))
+        temp_path.cleanup()
+
+    def test_error_all_combined_with_other_fields(self):
+        with self.assertRaises(Exception) as context:
+            command = [
+                os.path.join(self.test_data_dir, 'input.vcf.gz'),
+                'ALL',
+                'Consequence',
+            ]
+            vep_annotation_reporter.main(command)
+        self.assertTrue("The ALL keyword can't be combined with other VEP fields." in str(context.exception))
