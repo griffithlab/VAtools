@@ -19,6 +19,11 @@ input VCF can be identified by inspecting the ``Description`` field of the
 ``CSQ`` ``INFO`` header in the VCF. Everything after ``Format:`` is a field
 available in the VCF (delimited by ``|``).
 
+To report every VEP field, pass the keyword ``ALL`` instead of a list of
+fields. The tool will parse the ``CSQ`` header and add one column per field,
+in the order they appear in the header. ``ALL`` cannot be combined with other
+field names.
+
 By default, VEP annotates each variant with it's consequences in every transcript it intersects. In this case, the values for all transcript annotation will be returned as comma-separated values. 
 
 If VEP was run with one of the ``--flag_pick`` options, then it has labelled one of the consequences as the "best", and set the ``PICK`` field. If this field is
@@ -55,7 +60,15 @@ Download the example data used below:
 
 Outputs one row: ``22 18644673 C T missense_variant USP18 ENST00000215794 A/V``.
 
-**2. Multi-transcript variant, default (no PICK) behavior**
+**2. Report all VEP fields**
+
+.. code-block:: none
+
+   vep-annotation-reporter sample.vcf ALL -o sample.vep_report_all.tsv
+
+Outputs one column for every field listed in the VCF's ``CSQ`` header (``Allele``, ``Consequence``, ``IMPACT``, ``SYMBOL``, ...).
+
+**3. Multi-transcript variant, default (no PICK) behavior**
 
 .. code-block:: none
 
@@ -64,7 +77,7 @@ Outputs one row: ``22 18644673 C T missense_variant USP18 ENST00000215794 A/V``.
 
 Since VEP wasn't run with ``--flag_pick`` here, both transcripts' values are comma-separated in each field: ``intron_variant&nc_transcript_variant,non_coding_exon_variant&nc_transcript_variant``.
 
-**3.** ``-p`` **preferred transcripts**
+**4.** ``-p`` **preferred transcripts**
 
 .. code-block:: none
 
@@ -73,7 +86,7 @@ Since VEP wasn't run with ``--flag_pick`` here, both transcripts' values are com
 
 Restricts the row to only ``ENST00000423297`` (``GRAMD4P2``) instead of both transcripts.
 
-**4.** ``-t`` **merge into an existing TSV**
+**5.** ``-t`` **merge into an existing TSV**
 
 .. code-block:: none
 
