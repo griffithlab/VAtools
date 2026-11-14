@@ -66,4 +66,4 @@ python -m unittest tests.test_vep_annotation_reporter.VcfExpressionEncoderTests.
 
 Test inputs and expected outputs are in `tests/test_data/`. Most tests run a tool and compare its output to the expected results in that directory, so if you change a tool's output, you'll have to update the matching expected files too.
 
-The same tests run automatically on GitHub Actions (`.github/workflows/tests.yml`) for every push and pull request to `master`, on Python 3.10 through 3.14. Please make sure they pass locally before opening a PR.
+The same tests run automatically on GitHub Actions (`.github/workflows/tests.yml`) for every push and pull request to `master`, on Linux and macOS with Python 3.10 through 3.15. Please make sure they pass locally before opening a PR.
