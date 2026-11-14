@@ -18,7 +18,6 @@ setup(
     python_requires='>=3.10',
     install_requires=[
         'vcfpy==0.14.2',
-        'pysam',
         'pandas',
         'gtfparse==2.7.1',
         'testfixtures',
