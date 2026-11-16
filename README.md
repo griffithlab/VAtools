@@ -45,6 +45,8 @@ Please see [vatools.org](http://vatools.org) for the full documentation.
 
 ## Install
 
+VAtools runs on Linux and macOS. On Windows, use [WSL2](https://learn.microsoft.com/windows/wsl/) or the Docker image below.
+
 Install with pip
 `pip install vatools`
 
