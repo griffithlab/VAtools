@@ -1,5 +1,5 @@
 ![Test Status](https://github.com/griffithlab/VAtools/actions/workflows/tests.yml/badge.svg)
-[![Docs](https://readthedocs.org/projects/pvactools/badge/?version=latest)](http://vatools.readthedocs.io/en/latest/?badge=latest)
+[![Docs](https://readthedocs.org/projects/vatools/badge/?version=latest)](http://vatools.readthedocs.io/en/latest/?badge=latest)
 <a href="https://pypi.python.org/pypi/vatools/">
     <img src="https://img.shields.io/pypi/v/vatools.svg?maxAge=1000" alt="PyPI" />
 </a>
@@ -44,6 +44,8 @@ A tool that extracts and manipulates values from existing sample fields and outp
 Please see [vatools.org](http://vatools.org) for the full documentation.
 
 ## Install
+
+VAtools runs on Linux and macOS. On Windows, use [WSL2](https://learn.microsoft.com/windows/wsl/) or the Docker image below.
 
 Install with pip
 `pip install vatools`

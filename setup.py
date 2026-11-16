@@ -18,7 +18,6 @@ setup(
     python_requires='>=3.10',
     install_requires=[
         'vcfpy==0.14.2',
-        'pysam',
         'pandas',
         'gtfparse==2.7.1',
         'testfixtures',
@@ -35,6 +34,10 @@ setup(
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.15",
+
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: MacOS',
 
         'License :: OSI Approved :: MIT License',
     ],

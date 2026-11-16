@@ -24,7 +24,8 @@ def define_parser():
     parser.add_argument(
         "vep_fields",
         help="The VEP fields to report. Takes a space-separated list of fields. "
-            +"Example:  Consequence SYMBOL Feature",
+            +"Example:  Consequence SYMBOL Feature. "
+            +"Use the keyword ALL to report every field listed in the VCF's CSQ header.",
         nargs='+',
     )
     parser.add_argument(
@@ -89,6 +90,16 @@ def parse_preferred_transcripts_tsv(preferred_transcripts_tsv):
 def parse_csq_header(vcf_reader):
     format_pattern = re.compile('Format: (.*)')
     return format_pattern.search(vcf_reader.header.get_info_field_info('CSQ').description).group(1).split('|')
+
+def resolve_vep_fields(args):
+    if 'ALL' not in args.vep_fields:
+        return args.vep_fields
+    if len(args.vep_fields) > 1:
+        raise Exception("ERROR: The ALL keyword can't be combined with other VEP fields.")
+    vcf_reader = create_vcf_reader(args)
+    csq_fields = parse_csq_header(vcf_reader)
+    vcf_reader.close()
+    return csq_fields
 
 def parse_csq_entries(csq_entries, csq_fields):
     transcripts = {}
@@ -234,6 +245,7 @@ def add_vep_fields_to_row(args, row, vep):
 def main(args_input = sys.argv[1:]):
     parser = define_parser()
     args = parser.parse_args(args_input)
+    args.vep_fields = resolve_vep_fields(args)
 
     preferred_transcripts = parse_preferred_transcripts_tsv(args.preferred_transcripts_tsv)
     vep = extract_vep_fields(args, preferred_transcripts)
