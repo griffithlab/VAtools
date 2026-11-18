@@ -43,7 +43,7 @@ VAtools (VCF Annotation Tools) is a package designed to ease manipulation of gen
 
 # Statement of need
 
-The VCF format is the de facto standard for reporting and sharing genomic variant data, but it exists within an ecosystem of bioinformatics tools that output a wide array of often ill-defined formats. Genomics researchers often need to add such results from genomics assays or databases to a VCF file, both to store it in a structured manner and to simplify downstream analyses. Doing so with existing toolchains frequently requires complex multi-step machinations. We built VAtools to simplify some of the most common operations.
+The VCF format is the de facto standard for reporting and sharing genomic variant data, but it exists within an ecosystem of bioinformatics tools that output a wide array of often ill-defined formats. Genomics researchers frequently need to add such results from genomics assays or databases to a VCF file, both to store it in a structured manner and to simplify downstream analyses. Doing so with existing toolchains generally requires complex multi-step machinations. We built VAtools to simplify some of the most common operations.
 
 # State of the field
 
