@@ -37,8 +37,9 @@ Gzip-compressed bam-readcount files are also accepted.
 By default, bam-readcount does not output sites with zero coverage. This tool
 therefore assumes that VCF sites with no matching bam-readcount
 entry have zero coverage. It sets the depth/allele count/VAF fields to zero.
-(``DP``, ``AD``, ``RDP``, ``RAD``, ``AF``, ``RAF``). If this is not the
-behavior you want, because your input bam-readcount file doe not cover every
+(``DP``, ``AD``, ``ADF``, ``ADR``, ``AF`` for DNA; ``RDP``, ``RAD``,
+``RADF``, ``RADR``, ``RAF`` for RNA). If this is not the
+behavior you want, because your input bam-readcount file does not cover every
 site in the VCF (e.g. it was generated from a subset of sites), then add
 the flag ``--keep-original-if-missing``.  Those sites are then passed through
 unchanged.

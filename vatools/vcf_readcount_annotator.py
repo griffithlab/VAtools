@@ -373,10 +373,8 @@ def main(args_input = sys.argv[1:]):
                 entry.FORMAT += [frequency_field]
             vafs = [0] * len(alts)
             entry.call_for_sample[sample_name].data[frequency_field] = vafs
-            if count_field not in entry.FORMAT:
-                entry.FORMAT += [count_field]
-            ads = [0] * (len(alts) + 1)
-            entry.call_for_sample[sample_name].data[count_field] = ads
+            for field_name in [count_field, forward_count_field, reverse_count_field]:
+                add_format_value(entry, sample_name, field_name, [0] * (len(alts) + 1))
             write_record(entry, vcf_writer)
             continue
 
