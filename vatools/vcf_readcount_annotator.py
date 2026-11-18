@@ -45,6 +45,15 @@ def define_parser():
         choices=['snv', 'indel', 'all'],
         default='all'
     )
+    parser.add_argument(
+        "--keep-original-if-missing",
+        action='store_true',
+        default=False,
+        help="By default, sites in the VCF that are not present in the bam-readcount file are assumed "
+            +"to have zero coverage, and their depth, allele count, and VAF fields are set to 0 "
+            +"(bam-readcount does not output zero-coverage sites by default). With this flag, those "
+            +"sites are instead written to the output unchanged."
+    )
     extra = parser.add_argument_group('extra bam-readcount fields')
     extra.add_argument(
         '-a', '--all-fields', action='store_true', default=False,
@@ -325,6 +334,7 @@ def main(args_input = sys.argv[1:]):
         reverse_count_field = 'RADR'
         frequency_field = 'RAF'
 
+    missing_sites_found = False
     for entry in vcf_reader:
         chromosome = entry.CHROM
         start      = entry.affected_start
@@ -354,6 +364,10 @@ def main(args_input = sys.argv[1:]):
         (bam_readcount_position, ref_base, var_base) = parse_to_bam_readcount(start, reference, alts[0].serialize(), entry.POS)
         brct = read_counts.get((chromosome,bam_readcount_position,ref_base), None)
         if brct is None:
+            if args.keep_original_if_missing:
+                write_record(entry, vcf_writer)
+                continue
+            missing_sites_found = True
             add_format_value(entry, sample_name, depth_field, 0)
             if frequency_field not in entry.FORMAT:
                 entry.FORMAT += [frequency_field]
@@ -461,6 +475,9 @@ def main(args_input = sys.argv[1:]):
 
     vcf_writer.close()
     vcf_reader.close()
+
+    if missing_sites_found:
+        logging.warning("Some sites in the VCF are not present in the bam-readcount file. These sites are assumed to be zero coverage. If this is not the behavior you want, use the --keep-original-if-missing flag")
 
 if __name__ == '__main__':
     main()

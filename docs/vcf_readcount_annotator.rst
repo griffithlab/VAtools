@@ -32,6 +32,17 @@ your input VCF file. You can set a different output file using the
 
 Gzip-compressed bam-readcount files are also accepted.
 
+**Sites missing from the bam-readcount file**
+
+By default, bam-readcount does not output sites with zero coverage. This tool
+therefore assumes that VCF sites with no matching bam-readcount
+entry have zero coverage. It sets the depth/allele count/VAF fields to zero.
+(``DP``, ``AD``, ``RDP``, ``RAD``, ``AF``, ``RAF``). If this is not the
+behavior you want, because your input bam-readcount file doe not cover every
+site in the VCF (e.g. it was generated from a subset of sites), then add
+the flag ``--keep-original-if-missing``.  Those sites are then passed through
+unchanged.
+
 **SNVs and Indels**
 
 SNVs and indels are usually run separately through bam-readcount because indels
