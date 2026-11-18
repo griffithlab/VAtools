@@ -124,7 +124,12 @@ class VcfReadcountAnnotatorTests(unittest.TestCase):
             os.path.join(self.test_data_dir, 'snvs.bam_readcount'),
             'DNA',
         ]
-        vcf_readcount_annotator.main(command)
+        logging.disable(logging.NOTSET)
+        with LogCapture() as l:
+            vcf_readcount_annotator.main(command)
+            logged_str = "".join("".join(entry) for entry in l.actual())
+            self.assertTrue("Some sites in the VCF are not present in the bam-readcount file. These sites are assumed to be zero coverage." in logged_str)
+            self.assertTrue("--keep-original-if-missing" in logged_str)
         if self.REGENERATE_TEST_DATA:
             shutil.copy(
                 os.path.join(temp_path.name, 'input.readcount.vcf'),
@@ -132,6 +137,31 @@ class VcfReadcountAnnotatorTests(unittest.TestCase):
             )
         self.assertTrue(cmp(
             os.path.join(self.test_data_dir, 'no_matching_readcount.readcount.vcf'),
+            os.path.join(temp_path.name, 'input.readcount.vcf')
+        ))
+        temp_path.cleanup()
+
+    def test_mutation_without_matching_readcount_value_keep_original_if_missing(self):
+        temp_path = tempfile.TemporaryDirectory()
+        os.symlink(os.path.join(self.test_data_dir, 'no_matching_readcount.vcf'), os.path.join(temp_path.name, 'input.vcf'))
+        command = [
+            os.path.join(temp_path.name, 'input.vcf'),
+            os.path.join(self.test_data_dir, 'snvs.bam_readcount'),
+            'DNA',
+            '--keep-original-if-missing',
+        ]
+        logging.disable(logging.NOTSET)
+        with LogCapture() as l:
+            vcf_readcount_annotator.main(command)
+            logged_str = "".join("".join(entry) for entry in l.actual())
+            self.assertFalse("not present in the bam-readcount file" in logged_str)
+        if self.REGENERATE_TEST_DATA:
+            shutil.copy(
+                os.path.join(temp_path.name, 'input.readcount.vcf'),
+                os.path.join(self.test_data_dir, 'no_matching_readcount.keep_original_if_missing.readcount.vcf'),
+            )
+        self.assertTrue(cmp(
+            os.path.join(self.test_data_dir, 'no_matching_readcount.keep_original_if_missing.readcount.vcf'),
             os.path.join(temp_path.name, 'input.readcount.vcf')
         ))
         temp_path.cleanup()
