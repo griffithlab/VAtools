@@ -29,9 +29,9 @@ authors:
     orcid: 0000-0002-6388-446X
     affiliation: "1, 2" 
 affiliations:
- - name: Washington University in St Louis, MO
+ - name: Washington University in St Louis, MO, USA
    index: 1
- - name: Siteman Cancer Center, St Louis, MO
+ - name: Siteman Cancer Center, St Louis, MO, USA
    index: 2
 date: 4 July 2026
 bibliography: paper.bib
